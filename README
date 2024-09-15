@@ -1,0 +1,21 @@
+===============================================================================
+This is StACSOS!
+The University of St Andrews Compuer Science Operating System
+===============================================================================
+
+To get started, try:
+
+  $ make run
+
+You may need to coerce QEMU and the display variable, e.g.:
+
+  $ make run qemu=/usr/bin/my-qemu qemu-display=sdl
+
+Or, if you just build it (with make), the output files will be written to the
+out/ directory - so you can try booting it manually!
+
+Once running in the shell, try running the Mandelbrot program:
+
+  > /usr/mandelbrot
+
+(the shell is extremely basic, and does not support path resolution)
