@@ -44,7 +44,7 @@ debug: all
 		-debugcon stdio \
 		-kernel $(out-dir)/stacsos
 
-__build__%: .FORCE
+__build__%: $(out-dir) .FORCE
 	@make -C $(top-dir)/$(BUILD-TARGET) build
 
 __clean__%: .FORCE
@@ -53,5 +53,8 @@ __clean__%: .FORCE
 __build__kernel __build__user: $(lib)
 
 $(lib): __build__lib
+
+$(out-dir):
+	@mkdir $(out-dir)
 
 .PHONY: .FORCE

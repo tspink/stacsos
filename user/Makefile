@@ -19,7 +19,7 @@ build: $(build-targets) $(fs-target)
 clean: $(clean-targets)
 	@
 
-$(build-targets): __build_ulib
+$(build-targets): $(app-target-dir) __build_ulib
 	@make -C $(BUILD-TARGET) -f ../Makefile.user target=$(notdir $(BUILD-TARGET)) build
 
 $(clean-targets): __clean_ulib
@@ -36,5 +36,8 @@ $(fs-target): .FORCE
 	$(q)cp -r $(top-dir)/sysroot/* $(out-dir)/rootfs/
 	@echo "  TAR   $(fs-target)"
 	$(q)tar cf $(fs-target) -C $(out-dir)/rootfs .
+
+$(app-target-dir):
+	@mkdir -p $(app-target-dir)
 
 .PHONY: .FORCE
