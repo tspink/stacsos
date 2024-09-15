@@ -1,0 +1,17 @@
+Hello, and welcome to StACSOS: the St Andrews Computer Science Operating System
+
+-----
+
+One of your coursework tasks is to implement the 'ls' command - so there's
+currently no way to list the contents of the filesystem in the shell.
+
+However, you can either:
+
+  (a) Look at the generated rootfs.tar file in the out/ directory, on the host
+      system, e.g. tar tf rootfs.tar
+
+  (b) Look at the provided applications in the user/ directory.
+
+  (c) Run /usr/mandelbrot or /usr/poweroff
+
+Enjoy!
