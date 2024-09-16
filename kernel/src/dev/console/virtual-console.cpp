@@ -40,19 +40,21 @@ struct psf2_font_header {
 	u32 width;
 } __packed;
 
-extern "C" char _binary_zap_light16_psf_start; //[], _binary_zap_light16_psf_end[];
+extern "C" char _binary_zap_light16_psf_start;
+extern "C" char _binary_zap_vga16_psf_start;
 
 static const char *console_font_data;
 static int console_char_width, console_char_height;
 
 void virtual_console::configure()
 {
-	u32 font_magic = *(u32 *)&_binary_zap_light16_psf_start;
+	const void *font = &_binary_zap_light16_psf_start;
+	u32 font_magic = *(const u32 *)font;
 
 	if ((font_magic & 0xffff) == PSF1_FONT_MAGIC) {
-		console_font_data = ((const char *)&_binary_zap_light16_psf_start) + sizeof(psf1_font_header);
+		console_font_data = ((const char *)font) + sizeof(psf1_font_header);
 		console_char_width = 8;
-		console_char_height = ((const psf1_font_header *)&_binary_zap_light16_psf_start)->char_size;
+		console_char_height = ((const psf1_font_header *)font)->char_size;
 	} else if (font_magic == PSF2_FONT_MAGIC) {
 		panic("font not supported");
 	} else {
@@ -174,34 +176,27 @@ void virtual_console::on_key_down(keys key)
 	read_buffer_event_.trigger();
 }
 
+static u32 ansi_colour_map[] = {
+	/* LOW */ 0x000000, 0x800000, 0x008000, 0x808000, 0x000080, 0x800080, 0x008080, 0x808080, //
+	/* HI */ 0x808080, 0xff0000, 0x00ff00, 0xffff00, 0x0000ff, 0xff00ff, 0x00ffff, 0xffffff
+};
+
 void virtual_console::render_char(int x, int y, unsigned char ch, u8 attr)
 {
 	if (mode_ == virtual_console_mode::text) {
 		u16 *text_buffer = (u16 *)internal_buffer_;
 		text_buffer[x + (y * cols_)] = ((u16)attr << 8) | ch;
 	} else if (mode_ == virtual_console_mode::gfx) {
-		u32 fg_colour = 0x808080;
-		switch (attr) {
-		case 0x01:
-			fg_colour = 0xff0000;
-			break;
-		case 0x0e:
-			fg_colour = 0xffff00;
-			break;
-		case 0x0d:
-			fg_colour = 0x00ff00;
-			break;
-		}
-
-		u32 bg_colour = 0;
+		u32 fg_colour = ansi_colour_map[attr & 0xf];
+		u32 bg_colour = ansi_colour_map[(attr >> 4) & 0xf];
 
 		u32 *frame_buffer = (u32 *)internal_buffer_;
 
 		unsigned int pixel_offset = (x * console_char_width) + (y * GFX_MODE_WIDTH * console_char_height);
 		const char *char_data = &console_font_data[(int)ch * console_char_height];
 
-		for (int cy = 0; y < console_char_height; cy++) {
-			for (int cx = 0; x < console_char_width; cx++) {
+		for (int cy = 0; cy < console_char_height; cy++) {
+			for (int cx = 0; cx < console_char_width; cx++) {
 				frame_buffer[pixel_offset + cx + (GFX_MODE_WIDTH * cy)] = ((*char_data) & (1 << (7 - cx))) ? fg_colour : bg_colour;
 			}
 
@@ -212,7 +207,6 @@ void virtual_console::render_char(int x, int y, unsigned char ch, u8 attr)
 
 void virtual_console::write_char(unsigned char ch, u8 attr)
 {
-
 	switch (ch) {
 	case '\n':
 		x_ = 0;
@@ -253,7 +247,12 @@ void virtual_console::write_char(unsigned char ch, u8 attr)
 				text_buffer[i] = 0x0720;
 			}
 		} else {
-			//
+			u32 *frame_buffer = (u32 *)internal_buffer_;
+
+			memops::memcpy(frame_buffer, &frame_buffer[GFX_MODE_WIDTH * console_char_height],
+				((GFX_MODE_WIDTH * GFX_MODE_HEIGHT) - (GFX_MODE_WIDTH * console_char_height)) * 4);
+			memops::memset(
+				&frame_buffer[((GFX_MODE_WIDTH * GFX_MODE_HEIGHT) - (GFX_MODE_WIDTH * console_char_height))], 0, (GFX_MODE_WIDTH * console_char_height) * 4);
 		}
 		y_ = rows_ - 1;
 	}
@@ -348,11 +347,11 @@ void virtual_console::activate()
 {
 	active_ = true;
 
-	ioports::console_control::write8(0x0a);
+	/*ioports::console_control::write8(0x0a);
 	ioports::console_data::write8((ioports::console_data::read8() & 0xc0) | 0xd);
 
 	ioports::console_control::write8(0x0b);
-	ioports::console_data::write8((ioports::console_data::read8() & 0xe0) | 0xf);
+	ioports::console_data::write8((ioports::console_data::read8() & 0xe0) | 0xf);*/
 
 	update_cursor();
 }
@@ -368,6 +367,11 @@ void virtual_console::clear()
 			text_buffer[i] = 0x0720;
 		}
 	} else if (mode_ == virtual_console_mode::gfx) {
+		u32 *frame_buffer = (u32 *)internal_buffer_;
+
+		for (int i = 0; i < GFX_MODE_PIXELS; i++) {
+			frame_buffer[i] = 0;
+		}
 	}
 }
 
