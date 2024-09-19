@@ -20,6 +20,7 @@
 #include <stacsos/kernel/fs/vfs.h>
 #include <stacsos/kernel/mem/memory-manager.h>
 #include <stacsos/kernel/sched/process-manager.h>
+#include <stacsos/kernel/config.h>
 
 using namespace stacsos::kernel;
 using namespace stacsos::kernel::fs;
@@ -106,6 +107,7 @@ static void continue_main()
 __noreturn void main(const char *cmdline)
 {
 	debug_helper::get().parse_image();
+	stacsos::kernel::config::get().init(cmdline);
 
 	// Initialise the memory manager first, so we can allocate memory.
 	stacsos::kernel::mem::memory_manager::get().init();
