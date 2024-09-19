@@ -23,6 +23,9 @@ using namespace stacsos::kernel::mem;
  */
 void *large_object_allocator::allocate(size_t size)
 {
+	auto &pga = memory_manager::get().pgalloc();
+	auto &pta = memory_manager::get().ptalloc();
+
 	// This is technically locked by the "object allocator" spin lock.
 
 	u64 nr_pages = (size + PAGE_SIZE - 1) >> PAGE_BITS;
@@ -47,7 +50,7 @@ void *large_object_allocator::allocate(size_t size)
 	for (int i = 0; i < 32; i++) {
 		// Only allocate when the bit is set
 		if (nr_pages & (1 << i)) {
-			page *pg = pgalloc_.allocate_pages(i); // Allocate a block of pages
+			page *pg = pga.allocate_pages(i); // Allocate a block of pages
 
 			if (!pg) {
 				panic("unable to allocate pages for object");
@@ -56,7 +59,7 @@ void *large_object_allocator::allocate(size_t size)
 			// For each page in the block...
 			for (int j = 0; j < (1 << i); j++) {
 				// Map the pages in this block into the virtual address space.
-				v.map(ptalloc_, target + (PAGE_SIZE * pgi), pg->base_address() + (PAGE_SIZE * j), mapping_flags::writable);
+				v.map(pta, target + (PAGE_SIZE * pgi), pg->base_address() + (PAGE_SIZE * j), mapping_flags::writable);
 
 				// Increase the current page counter.
 				pgi++;

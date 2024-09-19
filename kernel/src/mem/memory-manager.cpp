@@ -5,8 +5,11 @@
  * Copyright (c) University of St Andrews 2024
  * Tom Spink <tcs6@st-andrews.ac.uk>
  */
+#include <stacsos/kernel/config.h>
 #include <stacsos/kernel/debug.h>
 #include <stacsos/kernel/mem/memory-manager.h>
+#include <stacsos/kernel/mem/page-allocator-buddy.h>
+#include <stacsos/kernel/mem/page-allocator-linear.h>
 #include <stacsos/kernel/mem/page.h>
 
 extern "C" const char *_IMAGE_START;
@@ -23,9 +26,27 @@ struct memory_block {
 static memory_block memory_blocks[16];
 static int nr_memory_blocks;
 
+static char page_allocator_structure[0x1000];
+
 void memory_manager::init()
 {
 	dprintf("mem: init\n");
+
+	const char *pgalloc_algorithm_name = config::get().get_option("pgalloc");
+	if (pgalloc_algorithm_name == nullptr || *pgalloc_algorithm_name == 0) {
+		pgalloc_algorithm_name = "linear";
+	}
+
+	dprintf("\e\x04mem: *** using the '%s' page allocator\e\x07\n", pgalloc_algorithm_name);
+
+	void *page_allocator_object = (void *)page_allocator_structure;
+	if (memops::strcmp(pgalloc_algorithm_name, "buddy") == 0) {
+		pgalloc_ = new (page_allocator_object) page_allocator_buddy(*this);
+	} else if (memops::strcmp(pgalloc_algorithm_name, "linear") == 0) {
+		pgalloc_ = new (page_allocator_object) page_allocator_linear(*this);
+	} else {
+		panic("Invalid page allocator algoritm: %s", pgalloc_algorithm_name);
+	}
 
 	dprintf("memory:\n");
 	u64 last_addr = 0;
@@ -78,7 +99,7 @@ void memory_manager::initialise_page_allocator(u64 nr_page_descriptors)
 		// If the memory block is available, then insert them into the page allocator.
 		if (mb->avail) {
 			// Add these pages to the page allocator
-			pgalloc_.insert_pages(page::get_from_pfn(mb->start >> PAGE_BITS), mb->length >> PAGE_BITS);
+			pgalloc_->insert_pages(page::get_from_pfn(mb->start >> PAGE_BITS), mb->length >> PAGE_BITS);
 		} else {
 			// Otherwise, mark these pages as reserved.
 			for (u64 pfn = (mb->start >> PAGE_BITS); pfn < ((mb->start + mb->length) >> PAGE_BITS); pfn++) {
@@ -93,18 +114,21 @@ void memory_manager::initialise_page_allocator(u64 nr_page_descriptors)
 
 	// Remove the first megabyte of memory.  Not strictly necessary, but there are
 	// various BIOS structures (and the zero page) which we should try to avoid.
-	pgalloc_.remove_pages(page::get_from_pfn(0), MB(1) >> PAGE_BITS);
+	pgalloc_->remove_pages(page::get_from_pfn(0), MB(1) >> PAGE_BITS);
 
-	// Remove early page tables (we'll put them back later, maybe)
-	pgalloc_.remove_pages(page::get_from_base_address(0x100000), 5);
+	// Remove early page tables (we'll put them back later, maybe), and the page containing
+	// the instantiated page allocator.
+	pgalloc_->remove_pages(page::get_from_base_address(0x100000), 6);
+
+	// Remove the hard-coded page allocator structure
 
 	// Remove the kernel image
 	u64 image_size = ((u64)&_IMAGE_END) - ((u64)&_IMAGE_START);
-	pgalloc_.remove_pages(page::get_from_base_address((u64)&_IMAGE_START), PAGE_ALIGN_UP(image_size) >> PAGE_BITS);
+	pgalloc_->remove_pages(page::get_from_base_address((u64)&_IMAGE_START), PAGE_ALIGN_UP(image_size) >> PAGE_BITS);
 
 	// Remove the page descriptors array
 	u64 page_descriptors_size = sizeof(page) * nr_page_descriptors;
-	pgalloc_.remove_pages(page::get_from_base_address((u64)&_DYNAMIC_DATA_START - 0xffff'ffff'8000'0000), PAGE_ALIGN_UP(page_descriptors_size) >> PAGE_BITS);
+	pgalloc_->remove_pages(page::get_from_base_address((u64)&_DYNAMIC_DATA_START - 0xffff'ffff'8000'0000), PAGE_ALIGN_UP(page_descriptors_size) >> PAGE_BITS);
 }
 
 void memory_manager::initialise_object_allocator()

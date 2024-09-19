@@ -20,7 +20,7 @@ private:
 public:
 	void init(const char *cmdline);
 
-	const char *get_option(const char *name)
+	const char *get_option(const char *name) const
 	{
 		for (unsigned int i = 0; i < nr_options_; i++) {
 			if (memops::strcmp(options_[i].key, name) == 0) {

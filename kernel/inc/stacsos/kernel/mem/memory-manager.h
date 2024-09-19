@@ -9,8 +9,7 @@
 
 #include <stacsos/kernel/mem/address-space.h>
 #include <stacsos/kernel/mem/object-allocator.h>
-#include <stacsos/kernel/mem/page-allocator-buddy.h>
-#include <stacsos/kernel/mem/page-allocator-linear.h>
+#include <stacsos/kernel/mem/page-allocator.h>
 #include <stacsos/kernel/mem/page-table-allocator.h>
 
 namespace stacsos::kernel::mem {
@@ -19,9 +18,7 @@ class memory_manager {
 
 private:
 	memory_manager()
-		: pgalloc_(*this)
-		, ptalloc_(pgalloc_)
-		, objalloc_(*this)
+		: pgalloc_(nullptr)
 		, root_address_space_(nullptr)
 	{
 	}
@@ -31,8 +28,7 @@ public:
 
 	void init();
 
-	page_allocator &pgalloc() { return pgalloc_; }
-	const page_allocator &pgalloc() const { return pgalloc_; }
+	page_allocator &pgalloc() const { return *pgalloc_; }
 
 	page_table_allocator &ptalloc() { return ptalloc_; }
 	const page_table_allocator &ptalloc() const { return ptalloc_; }
@@ -50,7 +46,7 @@ private:
 	void initialise_object_allocator();
 	void activate_primary_mapping();
 
-	page_allocator_linear pgalloc_;
+	page_allocator *pgalloc_;
 	page_table_allocator ptalloc_;
 	object_allocator objalloc_;
 

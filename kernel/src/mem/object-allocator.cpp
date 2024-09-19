@@ -15,16 +15,8 @@ using namespace stacsos::kernel::mem;
 
 #define VMALLOC_AREA 0xfffff00000000000
 
-object_allocator::object_allocator(memory_manager &mm)
-	: mm_(mm)
-	, cache16_(mm.pgalloc())
-	, cache32_(mm.pgalloc())
-	, cache64_(mm.pgalloc())
-	, cache128_(mm.pgalloc())
-	, cache256_(mm.pgalloc())
-	, cache512_(mm.pgalloc())
-	, cache1024_(mm.pgalloc())
-	, loa_(*this, mm.pgalloc(), mm.ptalloc(), (void *)VMALLOC_AREA, GB(1))
+object_allocator::object_allocator()
+	: loa_((void *)VMALLOC_AREA, GB(1))
 {
 }
 

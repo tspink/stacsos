@@ -16,14 +16,13 @@ class memory_manager;
 
 class object_allocator {
 public:
-	object_allocator(memory_manager &mm);
+	object_allocator();
 
 	void *alloc(size_t size);
 	void *realloc(void *obj, size_t size);
 	void free(void *obj);
 
 private:
-	memory_manager &mm_;
 	spinlock_irq object_allocator_lock_;
 
 	slab_cache<16, 0> cache16_;

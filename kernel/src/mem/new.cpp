@@ -5,9 +5,11 @@
  * Copyright (c) University of St Andrews 2024
  * Tom Spink <tcs6@st-andrews.ac.uk>
  */
+#include <stacsos/kernel/debug.h>
 #include <stacsos/kernel/mem/memory-manager.h>
 #include <stacsos/kernel/mem/object-allocator.h>
 
+using namespace stacsos::kernel;
 using namespace stacsos::kernel::mem;
 
 extern "C" {

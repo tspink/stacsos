@@ -10,8 +10,6 @@
 #include <stacsos/bitset.h>
 
 namespace stacsos::kernel::mem {
-class page_allocator;
-
 enum class slab_state { empty, partial, full };
 
 template <size_t object_size, int slab_page_order> class slab_cache {
@@ -86,9 +84,8 @@ private:
 	};
 
 public:
-	slab_cache(page_allocator &pgalloc)
+	slab_cache()
 		: slabs_(nullptr)
-		, pgalloc_(pgalloc)
 	{
 	}
 
@@ -150,7 +147,6 @@ public:
 
 private:
 	slab *slabs_;
-	page_allocator &pgalloc_;
 
 	void *allocate_slab();
 };
