@@ -71,7 +71,7 @@ void core::run()
 
 void core::schedule()
 {
-	tcb *next = sched_alg_.select_next_task(get_current_tcb());
+	tcb *next = sched_alg_->select_next_task(get_current_tcb());
 	if (!next) {
 		next = &idle_thread_;
 	}

@@ -9,6 +9,7 @@
 
 #include <stacsos/kernel/arch/irq-manager.h>
 #include <stacsos/kernel/arch/x86/msr.h>
+#include <stacsos/kernel/config.h>
 #include <stacsos/kernel/debug.h>
 #include <stacsos/kernel/sched/alg/rr.h>
 #include <stacsos/kernel/sched/alg/scheduling-algorithm.h>
@@ -36,11 +37,27 @@ public:
 		: id_(id)
 		, status_(core_status::offline)
 		, irqs_(*this)
-		, sched_alg_(*new alg::simple_fair_scheduler()) // *** COURSEWORK NOTE *** Change to `round_robin` to test your scheduler.
+		, sched_alg_(nullptr)
 	{
 		idle_thread_.entity = nullptr;
 		idle_thread_.mcontext = nullptr;
-		dprintf("core: using scheduling algorithm: %s\n", sched_alg_.name());
+
+		//*new alg::simple_fair_scheduler()
+
+		const char *sched_alg_name = config::get().get_option("sched");
+		if (!sched_alg_name || *sched_alg_name == 0) {
+			sched_alg_name = "sfs";
+		}
+
+		if (memops::strcmp(sched_alg_name, "sfs") == 0) {
+			sched_alg_ = new alg::simple_fair_scheduler();
+		} else if (memops::strcmp(sched_alg_name, "rr") == 0) {
+			sched_alg_ = new alg::round_robin();
+		} else {
+			panic("Unsupported scheduling algorithm '%s'", sched_alg_name);
+		}
+
+		dprintf("core: using scheduling algorithm: %s\n", sched_alg_->name());
 	}
 
 	int id() const { return id_; }
@@ -52,8 +69,8 @@ public:
 
 	virtual timer &local_timer() = 0;
 
-	void add_to_runqueue(tcb &tcb) { sched_alg_.add_to_runqueue(tcb); }
-	void remove_from_runqueue(tcb &tcb) { sched_alg_.remove_from_runqueue(tcb); }
+	void add_to_runqueue(tcb &tcb) { sched_alg_->add_to_runqueue(tcb); }
+	void remove_from_runqueue(tcb &tcb) { sched_alg_->remove_from_runqueue(tcb); }
 
 	void schedule();
 
@@ -73,6 +90,6 @@ private:
 	irq_manager irqs_;
 
 	tcb idle_thread_;
-	alg::scheduling_algorithm &sched_alg_;
+	alg::scheduling_algorithm *sched_alg_;
 };
 } // namespace stacsos::kernel::arch
