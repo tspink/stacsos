@@ -256,25 +256,22 @@ __x86_strncpy:
 .globl __x86_strcmp
 .type __x86_strcmp,%function
 __x86_strcmp:
-	xor %eax, %eax
-	xor %ecx, %ecx
-
-.align 16
-loop:
-	movzbl (%rdi, %rcx), %edx
-	testb %dl, %dl
-	je 1f
-
-	movzbl (%rsi, %rcx), %r8d
-	testb %r8b, %r8b
-	je 1f
-
-	inc %rcx
-	cmpb %r8b, %dl
-	je loop
-
-	mov $-1, %eax
+        jmp     2f
 
 1:
-	ret
+        cmpb    %al, (%rsi)
+        jne     3f
+        addq    $1, %rdi
+        addq    $1, %rsi
+
+2:
+        movzbl  (%rdi), %eax
+        testb   %al, %al
+        jne     1b
+        xorl    %eax, %eax
+
+3:
+        movzbl  (%rsi), %edx
+        subl    %edx, %eax
+        ret
 .size __x86_strcmp,.-__x86_strcmp
