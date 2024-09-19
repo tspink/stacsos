@@ -16,8 +16,12 @@ BUILD-TARGET = $(patsubst __build__%,%,$@)
 clean-targets := $(patsubst %,__clean__%,$(targets))
 CLEAN-TARGET = $(patsubst __clean__%,%,$@)
 
-qemu ?= qemu-system-x86_64
-qemu-display ?= gtk
+cs-qemu := /usr/local/qemu/bin/qemu-system-x86_64
+default-qemu := qemu-system-x86_64
+
+qemu := $(shell test -f $(cs-qemu) && echo "$(cs-qemu)" || echo "$(default-qemu)")
+
+kernel-args ?=
 
 all: $(build-targets)
 clean: $(clean-targets)
@@ -26,12 +30,12 @@ run: all
 	$(qemu) \
 		-smp 4 \
 		-machine q35 \
-		-display $(qemu-display) \
 		-enable-kvm \
 		-m 8G \
 		-debugcon stdio \
 		-cpu host \
 		-kernel $(out-dir)/stacsos \
+		-append "$(kernel-args)" \
 		-hda $(out-dir)/rootfs.img.tar
 
 debug: all
@@ -39,10 +43,11 @@ debug: all
 		-s -S \
 		-smp 4 \
 		-machine q35 \
-		-display $(qemu-display) \
 		-m 8G \
 		-debugcon stdio \
-		-kernel $(out-dir)/stacsos
+		-kernel $(out-dir)/stacsos \
+		-append "$(kernel-args)" \
+		-hda $(out-dir)/rootfs.img.tar
 
 __build__%: $(out-dir) .FORCE
 	@make -C $(top-dir)/$(BUILD-TARGET) build
