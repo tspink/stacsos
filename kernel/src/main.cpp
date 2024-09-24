@@ -44,8 +44,9 @@ static void init_console()
 
 	dm.register_device(*phys_console);
 
+	const char *console_mode_option = config::get().get_option("console-mode");
 	virtual_console_mode console_mode = virtual_console_mode::text;
-	if (stacsos::memops::strcmp(config::get().get_option("console-mode"), "gfx") == 0) {
+	if (console_mode_option && stacsos::memops::strcmp(config::get().get_option("console-mode"), "gfx") == 0) {
 		console_mode = virtual_console_mode::gfx;
 	}
 
