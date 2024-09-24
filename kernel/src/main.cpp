@@ -7,6 +7,7 @@
  */
 #include <stacsos/kernel/arch/core-manager.h>
 #include <stacsos/kernel/arch/x86/x86-platform.h>
+#include <stacsos/kernel/config.h>
 #include <stacsos/kernel/debug.h>
 #include <stacsos/kernel/dev/console/physical-console.h>
 #include <stacsos/kernel/dev/console/virtual-console.h>
@@ -20,7 +21,7 @@
 #include <stacsos/kernel/fs/vfs.h>
 #include <stacsos/kernel/mem/memory-manager.h>
 #include <stacsos/kernel/sched/process-manager.h>
-#include <stacsos/kernel/config.h>
+#include <stacsos/memops.h>
 
 using namespace stacsos::kernel;
 using namespace stacsos::kernel::fs;
@@ -43,7 +44,12 @@ static void init_console()
 
 	dm.register_device(*phys_console);
 
-	auto vc0 = new virtual_console(dm.sysbus(), virtual_console_mode::text);
+	virtual_console_mode console_mode = virtual_console_mode::text;
+	if (stacsos::memops::strcmp(config::get().get_option("console-mode"), "gfx") == 0) {
+		console_mode = virtual_console_mode::gfx;
+	}
+
+	auto vc0 = new virtual_console(dm.sysbus(), console_mode);
 	dm.register_device(*vc0);
 
 	auto tty0 = new terminal(dm.sysbus());
@@ -51,7 +57,7 @@ static void init_console()
 	dm.register_device(*tty0);
 	dm.add_device_alias(*tty0, "console");
 
-	auto vc1 = new virtual_console(dm.sysbus(), virtual_console_mode::text);
+	auto vc1 = new virtual_console(dm.sysbus(), console_mode);
 	dm.register_device(*vc1);
 
 	auto tty1 = new terminal(dm.sysbus());
