@@ -182,4 +182,6 @@ void thread::change_state(thread_states new_state)
 	default:
 		panic("illegal thread state change");
 	}
+
+	state_changed_event_.trigger();
 }

@@ -8,6 +8,7 @@
 #pragma once
 
 #include <stacsos/kernel/arch/x86/machine-context.h>
+#include <stacsos/kernel/sched/event.h>
 #include <stacsos/kernel/sched/schedulable-entity.h>
 
 namespace stacsos::kernel::mem {
@@ -33,6 +34,7 @@ public:
 	thread(process &owner, u64 ep = 0, void *ep_arg = nullptr, u64 user_stack = 0);
 
 	thread_states state() const { return state_; }
+	event &state_changed_event() { return state_changed_event_; }
 
 	void start();
 	void stop();
@@ -55,5 +57,6 @@ private:
 	thread_states state_;
 	mem::page *kernel_stack_;
 	u64 user_stack_;
+	event state_changed_event_;
 };
 } // namespace stacsos::kernel::sched

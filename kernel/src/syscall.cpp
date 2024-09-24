@@ -146,7 +146,12 @@ extern "C" syscall_result handle_syscall(syscall_numbers index, u64 arg0, u64 ar
 	}
 
 	case syscall_numbers::join_thread: {
-		return syscall_result { syscall_result_code::not_supported, 0 };
+		auto thread_object = object_manager::get().get_object(current_process, arg0);
+		if (!thread_object) {
+			return syscall_result { syscall_result_code::not_found, 0 };
+		}
+
+		return operation_result_to_syscall_result(thread_object->join());
 	}
 
 	case syscall_numbers::sleep: {

@@ -39,7 +39,5 @@ int main(const char *cmdline)
 	ta->join();
 	tb->join();
 
-	while (1)
-		asm volatile("");
 	return 0;
 }

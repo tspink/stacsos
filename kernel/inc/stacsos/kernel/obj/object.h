@@ -33,6 +33,7 @@ public:
 	virtual operation_result write(const void *buffer, size_t length) { return operation_result::not_supported(); }
 	virtual operation_result pwrite(const void *buffer, size_t length, size_t offset) { return operation_result::not_supported(); }
 	virtual operation_result wait_for_status_change() { return operation_result::not_supported(); }
+	virtual operation_result join() { return operation_result::not_supported(); }
 
 protected:
 	object(u64 id)
@@ -89,6 +90,15 @@ public:
 		: object(id)
 		, thread_(thread)
 	{
+	}
+
+	virtual operation_result join() override
+	{
+		while (thread_->state() != sched::thread_states::terminated) {
+			thread_->state_changed_event().wait();
+		}
+
+		return operation_result::ok(0);
 	}
 
 private:

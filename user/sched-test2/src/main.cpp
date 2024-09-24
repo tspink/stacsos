@@ -38,7 +38,6 @@ int main(const char *cmdline)
 		threads[i]->join();
 	}
 
-	while (1)
-		asm volatile("");
+	console::get().write("Scheduler test complete.\n");
 	return 0;
 }
