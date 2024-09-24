@@ -69,6 +69,7 @@ public:
 
 	static syscall_result start_thread(void *entrypoint, void *arg) { return syscall2(syscall_numbers::start_thread, (u64)entrypoint, (u64)arg); }
 	static syscall_result join_thread(u64 id) { return syscall1(syscall_numbers::join_thread, id); }
+	static syscall_result stop_current_thread() { return syscall0(syscall_numbers::stop_current_thread); }
 
 	static syscall_result sleep(u64 ms) { return syscall1(syscall_numbers::sleep, ms); }
 

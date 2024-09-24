@@ -138,6 +138,13 @@ extern "C" syscall_result handle_syscall(syscall_numbers index, u64 arg0, u64 ar
 		return syscall_result { syscall_result_code::ok, object_manager::get().create_thread_object(current_process, new_thread)->id() };
 	}
 
+	case syscall_numbers::stop_current_thread: {
+		current_thread.stop();
+		asm volatile("int $0xff");
+
+		return syscall_result { syscall_result_code::ok, 0 };
+	}
+
 	case syscall_numbers::join_thread: {
 		return syscall_result { syscall_result_code::not_supported, 0 };
 	}

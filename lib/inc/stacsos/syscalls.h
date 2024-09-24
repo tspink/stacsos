@@ -23,9 +23,10 @@ enum class syscall_numbers {
 	start_process = 9,
 	wait_for_process = 10,
 	start_thread = 11,
-	join_thread = 12,
-	sleep = 13,
-	poweroff = 14
+	stop_current_thread = 12,
+	join_thread = 13,
+	sleep = 14,
+	poweroff = 15
 };
 
 struct syscall_result {

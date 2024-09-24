@@ -10,9 +10,24 @@
 
 using namespace stacsos;
 
+struct thread_proc_args {
+	thread_entry_fn ep;
+	void *arg;
+};
+
+static void thread_proc(thread_proc_args *args)
+{
+	args->ep(args->arg);
+	delete args;
+
+	syscalls::stop_current_thread();
+}
+
 thread *thread::start(thread_entry_fn ep, void *arg)
 {
-	auto r = syscalls::start_thread((void *)ep, arg);
+	auto tpa = new thread_proc_args { ep, arg };
+
+	auto r = syscalls::start_thread((void *)thread_proc, tpa);
 
 	if (r.code != syscall_result_code::ok) {
 		return nullptr;
