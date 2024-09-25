@@ -31,6 +31,17 @@ public:
 		return nullptr;
 	}
 
+	const char *get_option_or_default(const char *name, const char *dfl) const
+	{
+		for (unsigned int i = 0; i < nr_options_; i++) {
+			if (memops::strcmp(options_[i].key, name) == 0) {
+				return options_[i].value;
+			}
+		}
+
+		return dfl;
+	}
+
 private:
 	char command_line_[256];
 	config_option options_[32];
