@@ -32,11 +32,7 @@ void memory_manager::init()
 {
 	dprintf("mem: init\n");
 
-	const char *pgalloc_algorithm_name = config::get().get_option("pgalloc");
-	if (pgalloc_algorithm_name == nullptr || *pgalloc_algorithm_name == 0) {
-		pgalloc_algorithm_name = "linear";
-	}
-
+	const char *pgalloc_algorithm_name = config::get().get_option_or_default("pgalloc", "linear");
 	dprintf("\e\x04mem: *** using the '%s' page allocator\e\x07\n", pgalloc_algorithm_name);
 
 	void *page_allocator_object = (void *)page_allocator_structure;
@@ -91,6 +87,11 @@ void memory_manager::initialise_page_descriptors(u64 nr_page_descriptors)
 
 void memory_manager::initialise_page_allocator(u64 nr_page_descriptors)
 {
+	if (memops::strcmp(config::get().get_option_or_default("pgalloc-selftest", "no"), "yes") == 0) {
+		pgalloc_->perform_selftest();
+		__unreachable();
+	}
+
 	// Loop through each memory block that we received from the
 	// startup code.
 	for (int i = 0; i < nr_memory_blocks; i++) {

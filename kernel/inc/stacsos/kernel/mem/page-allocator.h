@@ -38,6 +38,8 @@ public:
 
 	virtual void dump() const = 0;
 
+	void perform_selftest();
+
 private:
 	memory_manager &mm_;
 };

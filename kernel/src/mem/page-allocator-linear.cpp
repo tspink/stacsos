@@ -92,10 +92,17 @@ void page_allocator_linear::dump() const
 {
 	page *free_block = free_list_;
 
+	if (!free_block) {
+		dprintf("[empty]\n");
+		return;
+	}
+
+	dprintf("free list:\n");
+
 	while (free_block) {
 		u64 free_block_start = free_block->pfn();
 		u64 free_block_end = free_block_start + free_block->free_block_size_;
-		dprintf("free block start=0x%lx, end=0x%lx, size=0x%x\n", free_block_start, free_block_end, free_block_end - free_block_start);
+		dprintf("  block start=0x%lx, end=0x%lx, size=0x%x\n", free_block_start, free_block_end, free_block_end - free_block_start);
 
 		free_block = free_block->next_free_;
 	}
