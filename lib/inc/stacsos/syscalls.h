@@ -15,18 +15,19 @@ enum class syscall_numbers {
 	open = 1,
 	close = 2,
 	read = 3,
-	write = 4,
-	pwrite = 5,
-	set_fs = 6,
-	set_gs = 7,
-	alloc_mem = 8,
-	start_process = 9,
-	wait_for_process = 10,
-	start_thread = 11,
-	stop_current_thread = 12,
-	join_thread = 13,
-	sleep = 14,
-	poweroff = 15
+	pread = 4,
+	write = 5,
+	pwrite = 6,
+	set_fs = 7,
+	set_gs = 8,
+	alloc_mem = 9,
+	start_process = 10,
+	wait_for_process = 11,
+	start_thread = 12,
+	stop_current_thread = 13,
+	join_thread = 14,
+	sleep = 15,
+	poweroff = 16
 };
 
 struct syscall_result {
