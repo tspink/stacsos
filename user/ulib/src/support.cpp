@@ -9,3 +9,10 @@ extern "C" void __stack_chk_fail()
 {
 	for (;;) { }
 }
+
+void panic(const char *msg, ...)
+{
+	for (;;)
+		;
+	__unreachable();
+}

@@ -13,14 +13,12 @@ using namespace stacsos;
 
 extern int main(const char *cmdline);
 
-char tls[128];
+static char tls[256];
 
 static void init_tls() { stacsos::syscalls::set_fs((u64)tls); }
 
 extern "C" void start_main(const char *cmdline)
 {
-	asm volatile("push $0");
-
 	init_tls();
 
 	console::get().init();
