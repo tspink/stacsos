@@ -84,6 +84,9 @@ public:
 	using pic2_command = ioport<0xa0>;
 	using pic2_data = ioport<0xa1>;
 
+	using cmos_select = ioport<0x70>;
+	using cmos_data = ioport<0x71>;
+
 	using keyboard_controller = ioport<0x60>;
 	using qemu_debug_out = ioport<0xe9>;
 	using console_control = ioport<0x3d4>;
