@@ -39,7 +39,7 @@ address_space_region *address_space::add_region(u64 base, u64 size, region_flags
 
 	if (allocate) {
 		u64 pages = (size + (PAGE_SIZE - 1)) / PAGE_SIZE;
-		rgn->storage = memory_manager::get().pgalloc().allocate_pages(log2_ceil(pages));
+		rgn->storage = memory_manager::get().pgalloc().allocate_pages(log2_ceil(pages), page_allocation_flags::zero);
 
 		u64 cur_virt = base;
 		u64 cur_phys = rgn->storage->base_address();
