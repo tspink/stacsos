@@ -17,6 +17,7 @@
 #include <stacsos/kernel/dev/input/keyboard.h>
 #include <stacsos/kernel/dev/storage/ahci-storage-device.h>
 #include <stacsos/kernel/dev/tty/terminal.h>
+#include <stacsos/kernel/dev/misc/cmos-rtc.h>
 #include <stacsos/kernel/fs/filesystem.h>
 #include <stacsos/kernel/fs/vfs.h>
 #include <stacsos/kernel/mem/memory-manager.h>
@@ -31,11 +32,15 @@ using namespace stacsos::kernel::dev::gfx;
 using namespace stacsos::kernel::dev::console;
 using namespace stacsos::kernel::dev::tty;
 using namespace stacsos::kernel::dev::input;
+using namespace stacsos::kernel::dev::misc;
 using namespace stacsos::kernel::sched;
 
 static void init_console()
 {
 	auto &dm = device_manager::get();
+
+	auto rtc = new cmos_rtc(dm.sysbus());
+	dm.register_device(*rtc);
 
 	auto kbd = new keyboard(dm.sysbus());
 	dm.register_device(*kbd);
