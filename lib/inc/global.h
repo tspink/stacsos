@@ -24,6 +24,9 @@ using intmax_t = s64;
 using uintmax_t = u64;
 using max_align_t = u64;
 
+static const u32 U32_MAX = 0xffffffffu;
+static const u16 U16_MAX = 0xffffu;
+
 static const unsigned long PAGE_BITS = 12;
 static const unsigned long PAGE_SIZE = 1 << PAGE_BITS;
 static const unsigned long PAGE_MASK = ~(PAGE_SIZE - 1ull);
