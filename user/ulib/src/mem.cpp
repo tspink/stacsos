@@ -19,17 +19,22 @@ struct memory_block {
 	memory_block *next, *prev;
 	size_t size;
 
-	void remove() { }
+	void remove()
+	{
+		memory_block **slot = &free_list;
+		while (*slot) {
+			if (*slot == this) {
+				*slot = this->next;
+				return;
+			}
+		}
+	}
 
 	void insert()
 	{
 		memory_block **slot = &free_list;
-		while (*slot && (u64)(*slot) > (u64)this) {
+		while (*slot) {
 			slot = &(*slot)->next;
-		}
-
-		if (*slot) {
-			this->next = (*slot)->next;
 		}
 
 		*slot = this;
@@ -40,7 +45,7 @@ struct memory_block {
 		size_t orig_size = this->size;
 		this->size = size;
 
-		memory_block *new_block = (memory_block *)((u64)this + size);
+		memory_block *new_block = (memory_block *)((u64)this + size + sizeof(memory_block));
 		new_block->next = nullptr;
 		new_block->prev = nullptr;
 		new_block->size = orig_size - size;
@@ -70,7 +75,7 @@ static void *allocate(size_t size)
 		candidate_block = candidate_block->next;
 	}
 
-	size_t new_size = max(0x1000ul, (size + 0xfff) & ~0xfff);
+	size_t new_size = max(0x1000ul, (size + sizeof(memory_block) + 0xfff) & ~0xfff);
 	auto alloc_result = stacsos::syscalls::alloc_mem(new_size);
 	if (alloc_result.code != stacsos::syscall_result_code::ok) {
 		return nullptr;
