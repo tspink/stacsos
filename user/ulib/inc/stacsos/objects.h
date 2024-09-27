@@ -20,6 +20,8 @@ public:
 	size_t read(void *buffer, size_t length);
 	size_t pread(void *buffer, size_t length, size_t offset);
 
+	u64 ioctl(u64 cmd, void *buffer, size_t length);
+
 private:
 	u64 handle_;
 

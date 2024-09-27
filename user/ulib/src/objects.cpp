@@ -26,3 +26,4 @@ size_t object::read(void *buffer, size_t length) { return syscalls::read(handle_
 size_t object::write(const void *buffer, size_t length) { return syscalls::write(handle_, buffer, length).length; }
 size_t object::pwrite(const void *buffer, size_t length, size_t offset) { return syscalls::pwrite(handle_, buffer, length, offset).length; }
 size_t object::pread(void *buffer, size_t length, size_t offset) { return syscalls::pread(handle_, buffer, length, offset).length; }
+u64 object::ioctl(u64 cmd, void *buffer, size_t length) { return syscalls::ioctl(handle_, cmd, buffer, length).length; }

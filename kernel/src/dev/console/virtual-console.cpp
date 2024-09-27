@@ -402,6 +402,7 @@ u8 virtual_console::read_char()
 }
 
 namespace stacsos::kernel::dev::console {
+
 class virtual_console_file : public file {
 public:
 	virtual_console_file(virtual_console &vc)
@@ -434,6 +435,17 @@ public:
 		}
 
 		return clamped_length;
+	}
+
+	virtual u64 ioctl(u64 cmd, void *buffer, size_t length) override
+	{
+		switch (cmd) {
+		case 1:
+			return (u64)vc_.mode();
+
+		default:
+			return 0;
+		}
 	}
 
 private:

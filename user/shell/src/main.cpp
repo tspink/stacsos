@@ -36,7 +36,7 @@ static void run_command(const char *cmd)
 
 int main(void)
 {
-	console::get().write("This is the InfOS shell.  Path resolution is not-yet-implemented, so you\n"
+	console::get().write("This is the StACSOS shell.  Path resolution is \e\x0fnot-yet-implemented\e\x07, so you\n"
 						 "must type the command EXACTLY.\n\n");
 
 	console::get().write("Use the cat program to view the README: /usr/cat /docs/README\n\n");

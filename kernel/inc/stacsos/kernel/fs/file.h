@@ -19,6 +19,8 @@ public:
 
 	virtual ~file() { }
 
+	virtual u64 ioctl(u64 cmd, void *buffer, size_t length) { return 0; }
+
 	virtual size_t pread(void *buffer, size_t offset, size_t length) = 0;
 	virtual size_t pwrite(const void *buffer, size_t offset, size_t length) = 0;
 

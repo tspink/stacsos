@@ -111,6 +111,15 @@ extern "C" syscall_result handle_syscall(syscall_numbers index, u64 arg0, u64 ar
 		return operation_result_to_syscall_result(o->pread((void *)arg1, arg2, arg3));
 	}
 
+	case syscall_numbers::ioctl: {
+		auto o = object_manager::get().get_object(current_process, arg0);
+		if (!o) {
+			return syscall_result { syscall_result_code::not_found, 0 };
+		}
+
+		return operation_result_to_syscall_result(o->ioctl(arg1, (void *)arg2, arg3));
+	}
+
 	case syscall_numbers::alloc_mem: {
 		auto rgn = current_thread.owner().addrspace().alloc_region(PAGE_ALIGN_UP(arg0), region_flags::readwrite, true);
 
