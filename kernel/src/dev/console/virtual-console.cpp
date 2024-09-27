@@ -185,7 +185,7 @@ void virtual_console::render_char(int x, int y, unsigned char ch, u8 attr)
 {
 	if (mode_ == virtual_console_mode::text) {
 		u16 *text_buffer = (u16 *)internal_buffer_;
-		text_buffer[x + (y * cols_)] = ((u16)attr << 8) | ch;
+		text_buffer[x + (y * cols_)] = ((u16)attr << 8) | (u16)ch;
 	} else if (mode_ == virtual_console_mode::gfx) {
 		u32 fg_colour = ansi_colour_map[attr & 0xf];
 		u32 bg_colour = ansi_colour_map[(attr >> 4) & 0xf];
@@ -414,7 +414,12 @@ public:
 	{
 		size_t clamped_length = length;
 
-		memops::memcpy(buffer, &((u16 *)vc_.internal_buffer_)[offset], clamped_length);
+		if (vc_.mode() == virtual_console_mode::gfx) {
+			memops::memcpy(buffer, &((u32 *)vc_.internal_buffer_)[offset], clamped_length);
+		} else {
+			memops::memcpy(buffer, &((u16 *)vc_.internal_buffer_)[offset], clamped_length);
+		}
+
 		return clamped_length;
 	}
 
@@ -422,7 +427,12 @@ public:
 	{
 		size_t clamped_length = length;
 
-		memops::memcpy(&((u16 *)vc_.internal_buffer_)[offset], buffer, clamped_length);
+		if (vc_.mode() == virtual_console_mode::gfx) {
+			memops::memcpy(&((u32 *)vc_.internal_buffer_)[offset], buffer, clamped_length);
+		} else {
+			memops::memcpy(&((u16 *)vc_.internal_buffer_)[offset], buffer, clamped_length);
+		}
+
 		return clamped_length;
 	}
 
