@@ -117,6 +117,40 @@ struct code_segment_descriptor {
 	};
 } __packed;
 
+struct call_gate_descriptor {
+
+	call_gate_descriptor(u16 target_segment, descriptor_privilege_level dpl, u64 target)
+		: offset_low(target & 0xffff)
+		, segment_selector(target_segment)
+		, reserved(0)
+		, type(0xc)
+		, DPL((u8)dpl)
+		, P(1)
+		, offset_high((target >> 16) & 0xffff)
+		, offset_extra_high((target >> 32) & 0xffffffff)
+		, none(0)
+	{
+	}
+
+	union {
+		struct {
+			u64 bits_low, bits_high;
+		} __packed;
+
+		struct {
+			u16 offset_low;
+			u16 segment_selector;
+			u8 reserved;
+			u8 type : 5;
+			u8 DPL : 2;
+			u8 P : 1;
+			u16 offset_high;
+			u32 offset_extra_high;
+			u32 none;
+		} __packed;
+	};
+} __packed;
+
 struct tss_descriptor {
 
 	tss_descriptor(void *ptr, size_t size)
@@ -273,6 +307,8 @@ public:
 	bool add_code_segment(descriptor_privilege_level dpl);
 	bool add_data_segment(descriptor_privilege_level dpl);
 	bool add_tss(task_state_segment &tss);
+
+	bool add_call_gate(u16 target_segment, descriptor_privilege_level dpl, u64 target);
 
 	void *ptr() const { return (void *)&gdt_[0]; }
 

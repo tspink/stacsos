@@ -61,6 +61,7 @@ template <int MAX_NR_GDT_ENTRIES> bool global_descriptor_table<MAX_NR_GDT_ENTRIE
 	if (current_ >= MAX_NR_GDT_ENTRIES)
 		return false;
 
+	dprintf("gdt: add null @ %x\n", current_ * 8);
 	gdt_[current_++] = 0;
 	return true;
 }
@@ -76,6 +77,7 @@ template <int MAX_NR_GDT_ENTRIES> bool global_descriptor_table<MAX_NR_GDT_ENTRIE
 
 	code_segment_descriptor desc(dpl);
 
+	dprintf("gdt: add cs @ %x\n", current_ * 8);
 	gdt_[current_++] = desc.bits;
 	return true;
 }
@@ -92,7 +94,22 @@ template <int MAX_NR_GDT_ENTRIES> bool global_descriptor_table<MAX_NR_GDT_ENTRIE
 
 	data_segment_descriptor desc(dpl);
 
+	dprintf("gdt: add ds @ %x\n", current_ * 8);
 	gdt_[current_++] = desc.bits;
+	return true;
+}
+
+template <int MAX_NR_GDT_ENTRIES>
+bool global_descriptor_table<MAX_NR_GDT_ENTRIES>::add_call_gate(u16 target_segment, descriptor_privilege_level dpl, u64 target)
+{
+	if (current_ >= MAX_NR_GDT_ENTRIES)
+		return false;
+
+	call_gate_descriptor desc(target_segment, dpl, target);
+
+	dprintf("gdt: add cg @ %x\n", current_ * 8);
+	gdt_[current_++] = desc.bits_low;
+	gdt_[current_++] = desc.bits_high;
 	return true;
 }
 
@@ -109,6 +126,7 @@ template <int MAX_NR_GDT_ENTRIES> bool global_descriptor_table<MAX_NR_GDT_ENTRIE
 
 	tss_descriptor desc((void *)&tss.tss_[0], sizeof(tss.tss_));
 
+	dprintf("gdt: add tss @ %x\n", current_ * 8);
 	gdt_[current_++] = desc.bits_low;
 	gdt_[current_++] = desc.bits_high;
 
