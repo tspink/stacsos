@@ -23,19 +23,55 @@
 	push %r14
 	push %r15
 
+#ifdef USE_FSGSBASE
 	rdfsbase %rax
 	push %rax
 
 	rdgsbase %rax
 	push %rax
+#else
+	// FSBASE
+	movl $0xc0000100, %ecx
+	rdmsr
+	shl $32, %rdx
+	or %rdx, %rax
+
+	push %rax
+
+	// GSBASE
+	movl $0xc0000101, %ecx
+	rdmsr
+	shl $32, %rdx
+	or %rdx, %rax
+
+	push %rax
+#endif
 .endm
 
 .macro POP_STATE
+#ifdef USE_FSGSBASE
 	pop %rax
 	wrgsbase %rax
 
 	pop %rax
 	wrfsbase %rax
+#else
+	// GSBASE
+	movl $0xc0000101, %ecx
+
+	pop %rdx
+	mov %edx, %eax
+	shr $32, %rdx
+	wrmsr
+
+	// FSBASE
+	movl $0xc0000100, %ecx
+
+	pop %rdx
+	mov %edx, %eax
+	shr $32, %rdx
+	wrmsr
+#endif
 
 	pop %r15
 	pop %r14
