@@ -6,6 +6,7 @@
  * Tom Spink <tcs6@st-andrews.ac.uk>
  */
 #include <stacsos/kernel/arch/x86/boot/multiboot.h>
+#include <stacsos/kernel/arch/x86/cpuid.h>
 #include <stacsos/kernel/debug.h>
 #include <stacsos/kernel/mem/memory-manager.h>
 #include <stacsos/kernel/mem/page-table.h>
@@ -13,6 +14,7 @@
 
 using namespace stacsos;
 using namespace stacsos::kernel;
+using namespace stacsos::kernel::arch::x86;
 using namespace stacsos::kernel::arch::x86::boot;
 using namespace stacsos::kernel::mem;
 
@@ -90,6 +92,19 @@ static void clear_lower_mappings()
 	asm volatile("mov %0, %%cr3" ::"r"(cr3));
 }
 
+static void check_arch_support()
+{
+	cpuid c;
+	c.initialise();
+
+#ifdef USE_FSGSBASE
+	if (!c.get_feature(cpuid_features::fsgsbase)) {
+		dprintf("\e4ERROR:\e7 FSGSBASE IS NOT SUPPORTED.\n");
+		abort();
+	}
+#endif
+}
+
 /* Architecture-indepentent kernel entry point */
 extern __noreturn void main(const char *cmdline);
 
@@ -115,6 +130,9 @@ extern "C" __noreturn void x86_start(const multiboot_info *multiboot_info)
 	dprintf("\ef\xc9\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xbb\n");
 	dprintf("\xba \e7Welcome to \ecStACSOS\e7! \ef\xba\n");
 	dprintf("\ef\xc8\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xcd\xbc\e7\n");
+
+	// Make sure arch features are available.
+	check_arch_support();
 
 	// Process the command-line.
 	process_command_line(multiboot_info);

@@ -103,6 +103,7 @@ public:
 
 class fsbase {
 public:
+#ifdef USE_FSGSBASE
 	static u64 read()
 	{
 		u64 fsbase;
@@ -111,10 +112,28 @@ public:
 	}
 
 	static void write(u64 value) { asm volatile("wrfsbase %0" ::"r"(value)); }
+#else
+	static u64 read()
+	{
+		u32 low, high;
+
+		asm volatile("rdmsr" : "=a"(low), "=d"(high) : "c"((u32)0xc0000100u));
+		return (u64)low | (((u64)high) << 32);
+	}
+
+	static void write(u64 value)
+	{
+		u32 low = value & 0xffffffff;
+		u32 high = (value >> 32);
+
+		asm volatile("wrmsr" : : "c"(0xc0000100u), "a"(low), "d"(high));
+	}
+#endif
 };
 
 class gsbase {
 public:
+#ifdef USE_FSGSBASE
 	static u64 read()
 	{
 		u64 gsbase;
@@ -123,5 +142,22 @@ public:
 	}
 
 	static void write(u64 value) { asm volatile("wrgsbase %0" ::"r"(value)); }
+#else
+	static u64 read()
+	{
+		u32 low, high;
+
+		asm volatile("rdmsr" : "=a"(low), "=d"(high) : "c"((u32)0xc0000101u));
+		return (u64)low | (((u64)high) << 32);
+	}
+
+	static void write(u64 value)
+	{
+		u32 low = value & 0xffffffff;
+		u32 high = (value >> 32);
+
+		asm volatile("wrmsr" : : "c"(0xc0000101u), "a"(low), "d"(high));
+	}
+#endif
 };
 } // namespace stacsos::kernel::arch::x86

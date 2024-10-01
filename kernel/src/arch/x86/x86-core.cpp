@@ -82,7 +82,7 @@ static void yield_handler(u8 irq_nr, void *mcontext, void *arg)
 void x86_core::populate_dt()
 {
 	// Populate the GDT, with a NULL entry, then CODE and DATA segments for KERNEL and USER mode respectively.
-	gdt_.add_null();
+	gdt_.add_null(); // 0
 
 	// Kernel Code + Data
 	gdt_.add_code_segment(descriptor_privilege_level::ring0); // 08
@@ -93,7 +93,8 @@ void x86_core::populate_dt()
 	gdt_.add_code_segment(descriptor_privilege_level::ring3); // 20
 
 	// TSS descriptor
-	gdt_.add_tss(tss_);
+	gdt_.add_tss(tss_);		// 28
+
 	gdt_.reload();
 
 	// The IRQ manager takes care of the IDT
