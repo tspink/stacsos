@@ -15,11 +15,12 @@
 #include <stacsos/kernel/dev/device-manager.h>
 #include <stacsos/kernel/dev/gfx/qemu-stdvga.h>
 #include <stacsos/kernel/dev/input/keyboard.h>
+#include <stacsos/kernel/dev/misc/cmos-rtc.h>
 #include <stacsos/kernel/dev/storage/ahci-storage-device.h>
 #include <stacsos/kernel/dev/tty/terminal.h>
-#include <stacsos/kernel/dev/misc/cmos-rtc.h>
 #include <stacsos/kernel/fs/filesystem.h>
 #include <stacsos/kernel/fs/vfs.h>
+#include <stacsos/kernel/log.h>
 #include <stacsos/kernel/mem/memory-manager.h>
 #include <stacsos/kernel/sched/process-manager.h>
 #include <stacsos/memops.h>
@@ -34,6 +35,8 @@ using namespace stacsos::kernel::dev::tty;
 using namespace stacsos::kernel::dev::input;
 using namespace stacsos::kernel::dev::misc;
 using namespace stacsos::kernel::sched;
+
+logger main_logger(logger::root_logger, "main");
 
 static void init_console()
 {
@@ -78,11 +81,20 @@ static void init_console()
 	phys_console->add_virtual_console(*vc0);
 	phys_console->add_virtual_console(*vc1);
 
+	if (console_mode == virtual_console_mode::gfx) {
+		// Add an extra virtual console, if in graphics mode.
+		auto vc2 = new virtual_console(dm.sysbus(), console_mode);
+		dm.register_device(*vc2);
+		phys_console->add_virtual_console(*vc2);
+	}
+
 	// abort();
 }
 
 static void continue_main()
 {
+	main_logger.log(log_level::info, "now in kernel process");
+
 	device_manager::get().probe_buses();
 	init_console();
 
@@ -113,6 +125,7 @@ static void continue_main()
 		panic("unable to create init process");
 	}
 
+	main_logger.log(log_level::info, "starting init process");
 	init_proc->start();
 }
 
@@ -122,6 +135,7 @@ __noreturn void main(const char *cmdline)
 	stacsos::kernel::config::get().init(cmdline);
 
 	// Initialise the memory manager first, so we can allocate memory.
+	main_logger.log(log_level::info, "starting main kernel initialisation");
 	stacsos::kernel::mem::memory_manager::get().init();
 
 	// Now, initialise the core manager, which looks after CPU resources.
@@ -140,6 +154,8 @@ __noreturn void main(const char *cmdline)
 	// Create the kernel process, and start it.
 	auto kp = stacsos::kernel::sched::process_manager::get().create_kernel_process(continue_main);
 	kp->start();
+
+	main_logger.log(log_level::info, "continuing in kernel process");
 
 	// Tell the core manager to begin executing processes.
 	stacsos::kernel::arch::core_manager::get().go();
