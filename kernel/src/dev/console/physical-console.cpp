@@ -67,8 +67,22 @@ void physical_console::on_key_down(keys key)
 		break;
 
 	case keys::KEY_F2:
-		if (alt_pressed_) {
+		if (alt_pressed_ && virtual_consoles_.count() > 1) {
 			set_current_vc(*virtual_consoles_.at(1));
+			return;
+		}
+		break;
+
+	case keys::KEY_F3:
+		if (alt_pressed_ && virtual_consoles_.count() > 2) {
+			set_current_vc(*virtual_consoles_.at(2));
+			return;
+		}
+		break;
+
+	case keys::KEY_F4:
+		if (alt_pressed_ && virtual_consoles_.count() > 3) {
+			set_current_vc(*virtual_consoles_.at(3));
 			return;
 		}
 		break;
