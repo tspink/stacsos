@@ -36,6 +36,7 @@ void config::init(const char *cmdline)
 				add_option(kp, vp);
 
 				kp = p + 1;
+				state = 0;
 			}
 			break;
 		}
