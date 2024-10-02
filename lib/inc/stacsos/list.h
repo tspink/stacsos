@@ -151,8 +151,7 @@ public:
 
 	void push(elem const &elem)
 	{
-		node *slot = new node();
-		slot->data = elem;
+		node *slot = new node(elem);
 		slot->next = elems_;
 		elems_ = slot;
 
