@@ -7,6 +7,7 @@
  */
 #include <stacsos/kernel/arch/x86/pio.h>
 #include <stacsos/kernel/debug.h>
+#include <stacsos/kernel/dev/console/console-font.h>
 #include <stacsos/kernel/dev/console/virtual-console.h>
 #include <stacsos/kernel/fs/file.h>
 
@@ -19,48 +20,10 @@ using namespace stacsos;
 
 device_class virtual_console::virtual_console_device_class(device_class::root, "virtcon");
 
-#define PSF1_FONT_MAGIC 0x0436
-
-struct psf1_font_header {
-	u16 magic;
-	u8 font_mode;
-	u8 char_size;
-} __packed;
-
-#define PSF2_FONT_MAGIC 0x864ab572
-
-struct psf2_font_header {
-	u32 magic;
-	u32 version;
-	u32 headersize;
-	u32 flags;
-	u32 numglyph;
-	u32 bytesperglyph;
-	u32 height;
-	u32 width;
-} __packed;
-
-extern "C" char _binary_zap_light16_psf_start;
-extern "C" char _binary_zap_vga16_psf_start;
-
-static const char *console_font_data;
-static int console_char_width, console_char_height;
+extern console_font *active_font;
 
 void virtual_console::configure()
 {
-	const void *font = &_binary_zap_light16_psf_start;
-	u32 font_magic = *(const u32 *)font;
-
-	if ((font_magic & 0xffff) == PSF1_FONT_MAGIC) {
-		console_font_data = ((const char *)font) + sizeof(psf1_font_header);
-		console_char_width = 8;
-		console_char_height = ((const psf1_font_header *)font)->char_size;
-	} else if (font_magic == PSF2_FONT_MAGIC) {
-		panic("font not supported");
-	} else {
-		panic("corrupted font file (%08x)", font_magic);
-	}
-
 	switch (mode_) {
 	case virtual_console_mode::text:
 		rows_ = TEXT_MODE_ROWS;
@@ -68,8 +31,8 @@ void virtual_console::configure()
 		break;
 
 	case virtual_console_mode::gfx:
-		rows_ = GFX_MODE_HEIGHT / console_char_height;
-		cols_ = GFX_MODE_WIDTH / console_char_width;
+		rows_ = GFX_MODE_HEIGHT / active_font->char_dims().height();
+		cols_ = GFX_MODE_WIDTH / active_font->char_dims().width();
 		break;
 	}
 }
@@ -176,9 +139,9 @@ void virtual_console::on_key_down(keys key)
 	read_buffer_event_.trigger();
 }
 
-static u32 ansi_colour_map[] = {
-	/* LOW */ 0x000000, 0x800000, 0x008000, 0x808000, 0x000080, 0x800080, 0x008080, 0x808080, //
-	/* HI */ 0x808080, 0xff0000, 0x00ff00, 0xffff00, 0x0000ff, 0xff00ff, 0x00ffff, 0xffffff
+static u32 vga_colour_map[] = {
+	/* LOW */ 0x000000, 0x000080, 0x008000, 0x008080, 0x800000, 0x800080, 0x808000, 0x808080, //
+	/* HI */ 0x404040, 0x0000ff, 0x00ff00, 0x00ffff, 0xff0000, 0xff00ff, 0xffff00, 0xffffff
 };
 
 void virtual_console::render_char(int x, int y, unsigned char ch, u8 attr)
@@ -187,20 +150,20 @@ void virtual_console::render_char(int x, int y, unsigned char ch, u8 attr)
 		u16 *text_buffer = (u16 *)internal_buffer_;
 		text_buffer[x + (y * cols_)] = ((u16)attr << 8) | (u16)ch;
 	} else if (mode_ == virtual_console_mode::gfx) {
-		u32 fg_colour = ansi_colour_map[attr & 0xf];
-		u32 bg_colour = ansi_colour_map[(attr >> 4) & 0xf];
+		u32 fg_colour = vga_colour_map[attr & 0xf];
+		u32 bg_colour = vga_colour_map[(attr >> 4) & 0xf];
 
 		u32 *frame_buffer = (u32 *)internal_buffer_;
 
-		unsigned int pixel_offset = (x * console_char_width) + (y * GFX_MODE_WIDTH * console_char_height);
-		const char *char_data = &console_font_data[(int)ch * console_char_height];
+		console_font_char font_char = active_font->get_char(ch);
+		unsigned int pixel_offset = (x * font_char.dims().width()) + (y * GFX_MODE_WIDTH * font_char.dims().height());
+		// const char *char_data = &console_font_data[(int)ch * console_char_height];
 
-		for (int cy = 0; cy < console_char_height; cy++) {
-			for (int cx = 0; cx < console_char_width; cx++) {
-				frame_buffer[pixel_offset + cx + (GFX_MODE_WIDTH * cy)] = ((*char_data) & (1 << (7 - cx))) ? fg_colour : bg_colour;
+		for (int cy = 0; cy < font_char.dims().height(); cy++) {
+			for (int cx = 0; cx < font_char.dims().width(); cx++) {
+				// frame_buffer[pixel_offset + cx + (GFX_MODE_WIDTH * cy)] = ((*char_data) & (1 << (7 - cx))) ? fg_colour : bg_colour;
+				frame_buffer[pixel_offset + cx + (GFX_MODE_WIDTH * cy)] = font_char.get_pixel(cx, cy) ? fg_colour : bg_colour;
 			}
-
-			char_data++;
 		}
 	}
 }
@@ -249,10 +212,10 @@ void virtual_console::write_char(unsigned char ch, u8 attr)
 		} else {
 			u32 *frame_buffer = (u32 *)internal_buffer_;
 
-			memops::memcpy(frame_buffer, &frame_buffer[GFX_MODE_WIDTH * console_char_height],
-				((GFX_MODE_WIDTH * GFX_MODE_HEIGHT) - (GFX_MODE_WIDTH * console_char_height)) * 4);
-			memops::memset(
-				&frame_buffer[((GFX_MODE_WIDTH * GFX_MODE_HEIGHT) - (GFX_MODE_WIDTH * console_char_height))], 0, (GFX_MODE_WIDTH * console_char_height) * 4);
+			memops::memcpy(frame_buffer, &frame_buffer[GFX_MODE_WIDTH * active_font->char_dims().height()],
+				((GFX_MODE_WIDTH * GFX_MODE_HEIGHT) - (GFX_MODE_WIDTH * active_font->char_dims().height())) * 4);
+			memops::memset(&frame_buffer[((GFX_MODE_WIDTH * GFX_MODE_HEIGHT) - (GFX_MODE_WIDTH * active_font->char_dims().height()))], 0,
+				(GFX_MODE_WIDTH * active_font->char_dims().height()) * 4);
 		}
 		y_ = rows_ - 1;
 	}
