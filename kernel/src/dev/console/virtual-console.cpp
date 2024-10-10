@@ -31,6 +31,7 @@ void virtual_console::configure()
 		break;
 
 	case virtual_console_mode::gfx:
+		active_font->parse();
 		rows_ = GFX_MODE_HEIGHT / active_font->char_dims().height();
 		cols_ = GFX_MODE_WIDTH / active_font->char_dims().width();
 		break;

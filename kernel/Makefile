@@ -24,7 +24,7 @@ cxxflags += -mno-sse4 -mno-avx -mno-aes -mno-sse4a -mno-fma4
 asflags := -nostdinc -nostdlib -Wall -g -ffreestanding -fno-builtin
 ldflags := -nostdlib -z nodefaultlib -no-pie
 
-fonts := zap-light16.psf zap-vga16.psf
+fonts := zap-light16.psf zap-vga16.psf tamsyn-8x15r.psf
 font-objects := $(patsubst %.psf,%.o,$(fonts))
 
 build: $(target)

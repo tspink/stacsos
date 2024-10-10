@@ -47,7 +47,7 @@ public:
 		, font_data_start_(nullptr)
 		, size_(size)
 	{
-		parse();
+		//parse();
 	}
 
 	const console_font_char_dimensions &char_dims() const { return char_dims_; }
@@ -59,6 +59,7 @@ private:
 	size_t size_;
 	console_font_char_dimensions char_dims_;
 
+public:
 	void parse();
 };
 } // namespace stacsos::kernel::dev::console
