@@ -14,7 +14,6 @@ int __cxa_atexit(void (*destructor)(void *), void *arg, void *dso) { return 0; }
 
 struct memory_block;
 static memory_block *free_list;
-
 struct memory_block {
 	memory_block *next, *prev;
 	size_t size;
@@ -64,7 +63,7 @@ static void *allocate(size_t size)
 		if (candidate_block->size >= size) {
 			candidate_block->remove();
 
-			if (candidate_block->size > size) {
+			if (candidate_block->size > (size - sizeof(memory_block))) {
 				memory_block *new_block = candidate_block->split(size);
 				new_block->insert();
 			}
