@@ -118,7 +118,7 @@ private:
 
 	static syscall_result syscall4(syscall_numbers id, u64 arg0, u64 arg1, u64 arg2, u64 arg3)
 	{
-		u64 forced_arg3 asm("r8") = arg3;
+		register u64 forced_arg3 asm("r8") = arg3;
 
 		syscall_result r;
 		asm volatile("syscall" : "=a"(r.code), "=d"(r.data) : "a"(id), "D"(arg0), "S"(arg1), "d"(arg2), "r"(forced_arg3) : "flags", "rcx", "r11");
