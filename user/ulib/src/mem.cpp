@@ -31,12 +31,12 @@ struct memory_block {
 
 	void insert()
 	{
-		memory_block **slot = &free_list;
-		while (*slot) {
-			slot = &(*slot)->next;
+		memory_block *slot = free_list;
+		while (slot) {
+			slot = slot->next;
 		}
 
-		*slot = this;
+		slot = this;
 	}
 
 	memory_block *split(size_t size)
@@ -58,6 +58,7 @@ struct memory_block {
 static void *allocate(size_t size)
 {
 	memory_block *candidate_block = free_list;
+		
 
 	while (candidate_block) {
 		if (candidate_block->size >= size) {
