@@ -221,102 +221,12 @@ void virtual_console::write_char(unsigned char ch, u8 attr)
 		y_ = rows_ - 1;
 	}
 
-#if 0
-	if (mode_ == virtual_console_mode::text) {
-		/*u16 *text_buffer = (u16 *)internal_buffer_;
-
-		if (ch != '\n') {
-			text_buffer[x_ + (y_ * TEXT_MODE_COLS)] = ((u16)attr << 8) | ch;
-			x_++; // Also increment the X coordinate, i.e. moving the cursor right.
-		}
-
-		if (x_ >= TEXT_MODE_COLS || ch == '\n') {
-			x_ = 0;
-			y_++;
-
-			if (y_ >= TEXT_MODE_ROWS) {
-				// Copy everything from Line 2 (1-indexed) onwards back up by one line.
-				for (int i = TEXT_MODE_COLS; i < TEXT_MODE_CELLS; i++) {
-					text_buffer[i - TEXT_MODE_COLS] = text_buffer[i];
-				}
-
-				// Clear the last line.
-				for (int i = TEXT_MODE_COLS * (TEXT_MODE_ROWS - 1); i < TEXT_MODE_CELLS; i++) {
-					text_buffer[i] = 0;
-				}
-
-				y_ = TEXT_MODE_ROWS - 1; // Reset the Y coordinate
-			}
-		}*/
-	} else {
-		if (!ch) {
-			return;
-		}
-
-		u32 color = 0x808080;
-		switch (attr) {
-		case 0x01:
-			color = 0xff0000;
-			break;
-		case 0x0e:
-			color = 0xffff00;
-			break;
-		case 0x0d:
-			color = 0x00ff00;
-			break;
-		}
-
-		u32 *frame_buffer = (u32 *)internal_buffer_;
-
-		if (ch != '\n') {
-			unsigned int pixel_offset = (x_ * console_char_width) + (y_ * GFX_MODE_WIDTH * console_char_height);
-			const char *char_data = &console_font_data[(int)ch * console_char_height];
-
-			// dprintf("put char @ %d %d = %c - pixel: %lu, data: %lx\n", cx, cy, ch, pixel_offset, *(u32 *)char_data);
-
-			for (int y = 0; y < console_char_height; y++) {
-				for (int x = 0; x < console_char_width; x++) {
-
-					// dprintf("x=%d, y=%d, off=%d, %x %x\n", x, y, pixel_offset, *char_data, ((*char_data) & (1 << x)));
-
-					frame_buffer[pixel_offset + x + (GFX_MODE_WIDTH * y)] = ((*char_data) & (1 << (7 - x))) ? color : 0;
-				}
-
-				char_data++;
-			}
-
-			x_++;
-		}
-
-		if (x_ >= (GFX_MODE_WIDTH / console_char_width) || ch == '\n') {
-			x_ = 0;
-			y_++;
-
-			if (y_ >= GFX_MODE_HEIGHT / console_char_height) {
-				memops::memcpy(frame_buffer, &frame_buffer[GFX_MODE_WIDTH * console_char_height],
-					((GFX_MODE_WIDTH * GFX_MODE_HEIGHT) - (GFX_MODE_WIDTH * console_char_height)) * 4);
-				memops::memset(&frame_buffer[((GFX_MODE_WIDTH * GFX_MODE_HEIGHT) - (GFX_MODE_WIDTH * console_char_height))], 0,
-					(GFX_MODE_WIDTH * console_char_height) * 4);
-
-				y_ = (GFX_MODE_HEIGHT / console_char_height) - 1; // Reset the Y coordinate
-			}
-		}
-	}
-#endif
-
 	update_cursor();
 }
 
 void virtual_console::activate()
 {
 	active_ = true;
-
-	/*ioports::console_control::write8(0x0a);
-	ioports::console_data::write8((ioports::console_data::read8() & 0xc0) | 0xd);
-
-	ioports::console_control::write8(0x0b);
-	ioports::console_data::write8((ioports::console_data::read8() & 0xe0) | 0xf);*/
-
 	update_cursor();
 }
 
@@ -341,13 +251,28 @@ void virtual_console::clear()
 
 void virtual_console::update_cursor()
 {
-	if (active_ && mode_ == virtual_console_mode::text) {
+	if (!active_) {
+		return;
+	}
+
+	if (mode_ == virtual_console_mode::text) {
 		u16 pos = (y_ * cols_) + x_;
 
 		ioports::console_control::write8(0x0f);
 		ioports::console_data::write8((u8)(pos & 0xff)); // Low 8-bits
 		ioports::console_control::write8(0x0e);
 		ioports::console_data::write8((u8)((pos >> 8) & 0xff)); // High 8-bits
+	} else {
+		/*u32 *frame_buffer = (u32 *)internal_buffer_;
+
+		unsigned int pixel_offset = (x_ * 8) + (y_ * GFX_MODE_WIDTH * 15);
+
+		for (int cy = 14; cy < 15; cy++) {
+			for (int cx = 0; cx < 8; cx++) {
+				// frame_buffer[pixel_offset + cx + (GFX_MODE_WIDTH * cy)] = ((*char_data) & (1 << (7 - cx))) ? fg_colour : bg_colour;
+				frame_buffer[pixel_offset + cx + (GFX_MODE_WIDTH * cy)] = 0x00ffffff;
+			}
+		}*/
 	}
 }
 

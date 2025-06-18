@@ -62,14 +62,7 @@ private:
 	atomic_u64 next_id_;
 	map<sched::process *, map<u64, shared_ptr<object>> *> objects_;
 
-	u64 allocate_id(sched::process &owner)
-	{
-		u64 n = next_id_++;
-
-		dprintf("OM: %lu\n", n);
-
-		return n;
-	}
+	u64 allocate_id(sched::process &owner) { return next_id_++; }
 
 	shared_ptr<object> register_object(sched::process &owner, object *o)
 	{
