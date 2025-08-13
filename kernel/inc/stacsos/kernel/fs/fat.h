@@ -22,16 +22,23 @@ public:
 	fat_file(fat_filesystem &fs, u64 first_cluster, u64 file_size)
 		: file(file_size)
 		, fs_(fs)
-		, first_cluster_(first_cluster)
+		, clusters_(nullptr)
+		, nr_clusters_(0)
 	{
+		read_cluster_list(first_cluster, file_size);
 	}
+
+	virtual ~fat_file() { delete[] clusters_; }
 
 	virtual size_t pread(void *buffer, size_t offset, size_t length);
 	virtual size_t pwrite(const void *buffer, size_t offset, size_t length);
 
 private:
+	void read_cluster_list(u64 first_cluster, u64 file_size);
+
 	fat_filesystem &fs_;
-	u64 first_cluster_;
+	u64 *clusters_;
+	u64 nr_clusters_;
 };
 
 class fat_node : public fs_node {

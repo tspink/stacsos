@@ -227,12 +227,32 @@ void fat_node::load()
 		u64 sector = ((cluster - 2) * fatfs.sectors_per_cluster) + fatfs.first_data_sector;
 		u64 size = *(u32 *)&dentry[28];
 
-		dprintf("fat: dentry: name='%s', cluster=%lu, sector=%lu, size=%lu\n", filename.c_str(), cluster, sector, size);
+		// dprintf("fat: dentry: name='%s', cluster=%lu, sector=%lu, size=%lu\n", filename.c_str(), cluster, sector, size);
 
 		children_.append(new fat_node(fs(), this, (dentry[11] & 0x10) ? fs_node_kind::directory : fs_node_kind::file, filename, sector, cluster, size));
 	}
 
 	loaded_ = true;
+}
+
+void fat_file::read_cluster_list(u64 first_cluster, u64 file_size)
+{
+	u64 cluster_size = (512 * fs_.sectors_per_cluster);
+	nr_clusters_ = (file_size + (cluster_size - 1)) / cluster_size;
+
+	clusters_ = new u64[nr_clusters_];
+
+	u64 this_cluster = first_cluster;
+	for (int i = 0; i < nr_clusters_; i++) {
+		if (this_cluster >= 0xFFF8) {
+			dprintf("fat: warning: not enough clusters for reported file size\n");
+			nr_clusters_ = i-1;
+			break;
+		}
+
+		clusters_[i] = this_cluster;
+		this_cluster = fs_.next_cluster(this_cluster);
+	}
 }
 
 size_t fat_file::pread(void *buffer, size_t offset, size_t length)
@@ -241,12 +261,7 @@ size_t fat_file::pread(void *buffer, size_t offset, size_t length)
 	u64 target_cluster_index = offset / cluster_size;
 	u64 target_cluster_offset = offset % cluster_size;
 
-	u64 this_cluster = first_cluster_;
-
-	// Advance to the cluster containing the requested data.
-	for (int i = 0; i < target_cluster_index; i++) {
-		this_cluster = fs_.next_cluster(this_cluster);
-	}
+	u64 this_cluster = clusters_[target_cluster_index++];
 
 	u8 *buffer_pos = (u8 *)buffer;
 
@@ -267,14 +282,13 @@ size_t fat_file::pread(void *buffer, size_t offset, size_t length)
 		}
 
 		// Locate the next cluter in this chain
-		this_cluster = fs_.next_cluster(this_cluster);
-
-		if (this_cluster >= 0xfff8) {
+		if (target_cluster_index >= nr_clusters_) {
 			// No further clusters -- we're past the end of the file data.
 			break;
 		}
 
-		target_cluster_offset = 0;
+		this_cluster = clusters_[target_cluster_index++];
+		target_cluster_offset = 0; // Start at the beginning of the next cluster.
 	}
 
 	return length - remaining_length;
