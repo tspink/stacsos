@@ -16,7 +16,7 @@ class block_device;
 
 namespace stacsos::kernel::fs {
 
-enum class fs_type_hint { best_guess, tarfs };
+enum class fs_type_hint { best_guess, tarfs, fat };
 
 class filesystem {
 public:

@@ -1,3 +1,10 @@
+/* SPDX-License-Identifier: MIT */
+
+/* StACSOS - Kernel
+ *
+ * Copyright (c) University of St Andrews 2025
+ * Tom Spink <tcs6@st-andrews.ac.uk>
+ */
 #pragma once
 
 #include <stacsos/kernel/dev/storage/block-device.h>
@@ -45,7 +52,6 @@ public:
 
 	virtual void read_blocks_sync(void *buffer, u64 start, u64 count) override
 	{
-		dprintf("reading partition offset=%lu count=%lu -- actual offset=%lu\n", start, count, start + block_offset_);
 		owner_.read_blocks_sync(buffer, start + block_offset_, count);
 	}
 

@@ -36,7 +36,7 @@ run: all
 		-cpu host \
 		-kernel $(out-dir)/stacsos \
 		-append "$(kernel-args)" \
-		-hda $(out-dir)/rootfs.img.tar
+		-drive format=raw,file=fat:rw:$(out-dir)/rootfs
 
 debug: all
 	$(qemu) \
@@ -47,7 +47,7 @@ debug: all
 		-debugcon stdio \
 		-kernel $(out-dir)/stacsos \
 		-append "$(kernel-args)" \
-		-hda $(out-dir)/rootfs.img.tar
+		-drive format=raw,file=fat:rw:$(out-dir)/rootfs
 
 __build__%: $(out-dir) .FORCE
 	@make -C $(top-dir)/$(BUILD-TARGET) build

@@ -11,7 +11,7 @@ BUILD-TARGET = $(patsubst __build__%,%,$@)
 clean-targets := $(patsubst %,__clean__%,$(app-dirs))
 CLEAN-TARGET = $(patsubst __clean__%,%,$@)
 
-fs-target := $(out-dir)/rootfs.img.tar
+fs-target := __copy_sysroot
 
 build: $(build-targets) $(fs-target)
 	@
@@ -32,10 +32,11 @@ __clean_ulib:
 	@make -C $(this-dir)/ulib clean
 
 $(fs-target): .FORCE
-	@echo "  CP sysroot"
+	@echo "  MKDIR rootfs"
+	$(q)@mkdir -p $(out-dir)/rootfs
+
+	@echo "  CP    sysroot"
 	$(q)cp -r $(top-dir)/sysroot/* $(out-dir)/rootfs/
-	@echo "  TAR   $(fs-target)"
-	$(q)tar cf $(fs-target) -C $(out-dir)/rootfs .
 
 $(app-target-dir):
 	@mkdir -p $(app-target-dir)

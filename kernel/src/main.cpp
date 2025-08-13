@@ -17,6 +17,7 @@
 #include <stacsos/kernel/dev/input/keyboard.h>
 #include <stacsos/kernel/dev/misc/cmos-rtc.h>
 #include <stacsos/kernel/dev/storage/ahci-storage-device.h>
+#include <stacsos/kernel/dev/storage/partitioned-device.h>
 #include <stacsos/kernel/dev/tty/terminal.h>
 #include <stacsos/kernel/fs/filesystem.h>
 #include <stacsos/kernel/fs/vfs.h>
@@ -104,8 +105,8 @@ static void continue_main()
 		panic("unable to acquire fs root");
 	}
 
-	auto &dev = device_manager::get().get_device_by_class<ahci_storage_device>(ahci_storage_device::ahci_storage_device_class);
-	auto *fs = filesystem::create_from_bdev(dev, fs_type_hint::tarfs);
+	auto &dev = device_manager::get().get_device_by_name<partition>("part0");
+	auto *fs = filesystem::create_from_bdev(dev, fs_type_hint::fat);
 	if (!fs) {
 		panic("unable to create filesystem");
 	}

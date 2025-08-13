@@ -1,3 +1,10 @@
+/* SPDX-License-Identifier: MIT */
+
+/* StACSOS - Kernel
+ *
+ * Copyright (c) University of St Andrews 2025
+ * Tom Spink <tcs6@st-andrews.ac.uk>
+ */
 #include <stacsos/kernel/dev/storage/partitioned-device.h>
 
 using namespace stacsos::kernel::dev;
