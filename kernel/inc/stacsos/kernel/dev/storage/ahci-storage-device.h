@@ -37,5 +37,6 @@ private:
 
 	volatile hba_cmd_header *get_free_cmd_slot(int &slot_index);
 	void identify();
+	void detect_partitions();
 };
 } // namespace stacsos::kernel::dev::storage
