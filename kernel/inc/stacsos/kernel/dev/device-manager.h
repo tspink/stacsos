@@ -32,22 +32,20 @@ public:
 	void probe_buses();
 
 	string register_device(device &device);
-	void add_device_alias(device &device, const string& name);
+	void add_device_alias(device &device, const string &name);
 
 	bool try_get_device_by_class(const device_class &cls, device *&ptr);
 	bool try_get_device_by_name(const string &name, device *&ptr);
 
-	/*bool try_get_device_by_name(const util::string &name, device *&ptr);
-
-	template <class T> T &get_device_by_name(const util::string &name)
+	template <class T> T &get_device_by_name(const string &name)
 	{
 		device *dp;
 		if (try_get_device_by_name(name, dp)) {
 			return *(T *)dp;
 		}
 
-		throw util::system_exception("missing device");
-	}*/
+		panic("missing device");
+	}
 
 	template <class T> T &get_device_by_class(const device_class &cls)
 	{
