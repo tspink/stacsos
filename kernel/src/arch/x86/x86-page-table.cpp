@@ -18,6 +18,10 @@ static u16 pd_index(u64 address) { return (address >> PAGE_BITS >> 9) & 0x1ff; }
 static u16 pdp_index(u64 address) { return (address >> PAGE_BITS >> 9 >> 9) & 0x1ff; }
 static u16 pml4_index(u64 address) { return (address >> PAGE_BITS >> 9 >> 9 >> 9) & 0x1ff; }
 
+static u64 l1_pg_off(u64 address) { return address & 0xfff; } // 4K
+static u64 l2_pg_off(u64 address) { return address & 0x1fffff; } // 2M
+static u64 l3_pg_off(u64 address) { return address & 0x3fffffff; } // 1G
+
 x86_page_table *x86_page_table::create_empty(page_table_allocator &pta)
 {
 	page *pml4 = pta.allocate();
@@ -117,6 +121,39 @@ void x86_page_table::map(page_table_allocator &pta, u64 virtual_address, u64 phy
 	l1.present(true);
 	l1.rw(rw);
 	l1.us(user);
+}
+
+mapping x86_page_table::get_mapping(u64 virtual_address)
+{
+	pml4e &l4 = pml4_[pml4_index(virtual_address)];
+	if (!l4.present()) {
+		return { mapping_result::unmapped, 0 };
+	}
+
+	pdpe &l3 = (*(pdp *)page::get_from_base_address(l4.base_address()).base_address_ptr())[pdp_index(virtual_address)];
+	if (!l3.present()) {
+		return { mapping_result::unmapped, 0 };
+	}
+
+	if (l3.size()) {
+		return { mapping_result::ok, l3.base_address() + l3_pg_off(virtual_address) };
+	}
+
+	pde &l2 = (*(pd *)page::get_from_base_address(l3.base_address()).base_address_ptr())[pd_index(virtual_address)];
+	if (!l2.present()) {
+		return { mapping_result::unmapped, 0 };
+	}
+
+	if (l2.size()) {
+		return { mapping_result::ok, l2.base_address() + l2_pg_off(virtual_address) };
+	}
+
+	pte &l1 = (*(pt *)page::get_from_base_address(l2.base_address()).base_address_ptr())[pt_index(virtual_address)];
+	if (!l1.present()) {
+		return { mapping_result::unmapped, 0 };
+	}
+
+	return { mapping_result::ok, l1.base_address() + l1_pg_off(virtual_address) };
 }
 
 void x86_page_table::dump() const

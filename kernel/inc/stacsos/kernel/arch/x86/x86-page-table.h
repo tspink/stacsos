@@ -19,9 +19,24 @@ enum class mapping_flags { none, present = 1, writable = 2, user_accessable = 4,
 
 DEFINE_ENUM_FLAG_OPERATIONS(mapping_flags)
 
+enum class mapping_result { ok, unmapped };
+
+struct mapping {
+	mapping_result result;
+	u64 address;
+};
+
 class x86_page_table {
 public:
 	static x86_page_table *create_empty(mem::page_table_allocator &pta);
+
+	static x86_page_table *current()
+	{
+		u64 cr3val;
+		asm volatile("mov %%cr3, %0" : "=r"(cr3val));
+
+		return (x86_page_table *)(0xffff'8000'0000'0000 + cr3val);
+	}
 
 	x86_page_table *create_linked_copy(mem::page_table_allocator &pta);
 
@@ -33,6 +48,8 @@ public:
 
 	void map(mem::page_table_allocator &pta, u64 virtual_address, u64 physical_address, mapping_flags flags, mapping_size size = mapping_size::m4k);
 	void unmap(mem::page_table_allocator &pta, u64 virtual_address);
+
+	mapping get_mapping(u64 virtual_address);
 
 	void dump() const;
 
