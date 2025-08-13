@@ -97,7 +97,7 @@ void fat_filesystem::init()
 
 	// FAT type identification
 	if (total_clusters < 4085) {
-		dprintf("fat: fat12\n");
+		panic("FAT12 not supported");
 	} else if (total_clusters < 65525) {
 		dprintf("fat: fat16\n");
 	} else {
@@ -170,33 +170,69 @@ void fat_node::load()
 
 	auto cluster_data = fatfs.read_cluster_from_sector(sector_);
 
+	char long_filename_buffer[256] = { 0 };
+	bool has_long_filename = false;
+
 	for (const u8 *dentry = &(cluster_data.get())[0]; dentry < &(cluster_data.get())[512]; dentry += 32) {
 		if (dentry[0] == 0) {
+			// No more files in this directory.
 			break;
 		} else if (dentry[0] == 0xe5) {
+			// Entry is unused -- ignore.
 			continue;
 		}
 
 		if (dentry[11] == 0x0f) {
+			has_long_filename = true;
+
+			// Long filename record
+			u8 filename_offset = 0;
+
+			for (int i = 1; i < 11; i += 2) {
+				long_filename_buffer[filename_offset++] = dentry[i];
+			}
+
+			for (int i = 14; i < 26; i += 2) {
+				long_filename_buffer[filename_offset++] = dentry[i];
+			}
+
+			for (int i = 28; i < 32; i += 2) {
+				long_filename_buffer[filename_offset++] = dentry[i];
+			}
+
 			continue;
 		}
 
-		char filename[12] = { 0 };
-		memops::memcpy(filename, dentry, 11);
+		char short_filename[12] = { 0 };
+		memops::memcpy(short_filename, dentry, 11);
 		for (int i = 0; i < 11; i++) {
-			if (filename[i] == 0x20) {
-				filename[i] = 0;
-			} else if (filename[i] > 0x40 && filename[i] < 0x5b) {
-				filename[i] |= 0x20;
+			if (short_filename[i] == 0x20) {
+				short_filename[i] = 0;
+			} else if (short_filename[i] > 0x40 && short_filename[i] < 0x5b) {
+				short_filename[i] |= 0x20;
 			}
+		}
+
+		string filename;
+		if (has_long_filename) {
+			filename = string(long_filename_buffer);
+
+			has_long_filename = false;
+			memops::memset(long_filename_buffer, 0, sizeof(long_filename_buffer));
+		} else {
+			filename = string(short_filename);
 		}
 
 		u32 cluster = ((u32) * ((u16 *)&dentry[26])) | (((u32) * ((u16 *)&dentry[20])) << 16);
 		u64 sector = ((cluster - 2) * fatfs.sectors_per_cluster) + fatfs.first_data_sector;
 		u64 size = *(u32 *)&dentry[28];
 
-		children_.append(new fat_node(fs(), this, (dentry[11] & 0x10) ? fs_node_kind::directory : fs_node_kind::file, string(filename), sector, cluster, size));
+		dprintf("fat: dentry: name='%s', cluster=%lu, sector=%lu, size=%lu\n", filename.c_str(), cluster, sector, size);
+
+		children_.append(new fat_node(fs(), this, (dentry[11] & 0x10) ? fs_node_kind::directory : fs_node_kind::file, filename, sector, cluster, size));
 	}
+
+	loaded_ = true;
 }
 
 size_t fat_file::pread(void *buffer, size_t offset, size_t length)
