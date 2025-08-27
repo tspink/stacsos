@@ -19,8 +19,6 @@ class page_allocator_linear;
 
 class page {
 	friend class memory_manager;
-	friend class page_allocator_buddy;
-	friend class page_allocator_linear;
 
 public:
 	static page &get_from_pfn(u64 pfn) { return get_pagearray()[pfn]; }
@@ -39,8 +37,6 @@ private:
 
 	page_type type_;
 	page_state state_;
-	page *next_free_;
-	u64 free_block_size_;
 	u64 refcount_;
 };
 } // namespace stacsos::kernel::mem

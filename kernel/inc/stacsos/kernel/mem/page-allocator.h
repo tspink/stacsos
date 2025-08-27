@@ -25,8 +25,7 @@ public:
 	{
 	}
 
-	virtual void insert_pages(page &range_start, u64 page_count) = 0;
-	virtual void remove_pages(page &range_start, u64 page_count) = 0;
+	virtual void insert_free_pages(page &range_start, u64 page_count) = 0;
 
 	virtual page *allocate_pages(int order, page_allocation_flags flags = page_allocation_flags::none) = 0;
 	virtual void free_pages(page &base, int order) = 0;

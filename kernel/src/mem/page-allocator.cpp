@@ -20,15 +20,15 @@ void page_allocator::perform_selftest()
 	dump();
 
 	dprintf("(2) Insert power-of-two block (PFN=0, COUNT=8)\n");
-	insert_pages(page::get_from_pfn(0), 8);
+	insert_free_pages(page::get_from_pfn(0), 8);
 	dump();
 
 	dprintf("(3) Insert odd block (PFN=13, COUNT=3)\n");
-	insert_pages(page::get_from_pfn(13), 3);
+	insert_free_pages(page::get_from_pfn(13), 3);
 	dump();
 
-	dprintf("(4) Remove page (PFN=2, COUNT=1)\n");
-	remove_pages(page::get_from_pfn(2), 1);
+	dprintf("(4) Insert another block (PFN=1300, COUNT=7)\n");
+	insert_free_pages(page::get_from_pfn(1300), 7);
 	dump();
 
 	dprintf("(5) Allocate page (ORDER=0)\n");
@@ -45,7 +45,7 @@ void page_allocator::perform_selftest()
 	dump();
 
 	dprintf("(7) Insert pages (PFN=20, COUNT=20)\n");
-	insert_pages(page::get_from_pfn(20), 20);
+	insert_free_pages(page::get_from_pfn(20), 20);
 	dump();
 
 	dprintf("(8) Allocate page (ORDER=1)\n");
@@ -62,7 +62,7 @@ void page_allocator::perform_selftest()
 	dump();
 
 	dprintf("(10) Insert one page (PFN=2, ORDER=0)\n");
-	insert_pages(page::get_from_pfn(2), 1);
+	insert_free_pages(page::get_from_pfn(2), 1);
 	dump();
 
 	dprintf("(11) Allocate page (ORDER=3)\n");
@@ -85,7 +85,7 @@ void page_allocator::perform_selftest()
 	dump();
 
     dprintf("(14) Insert page to trigger higher merge (PFN=40, ORDER=3)\n");
-	insert_pages(page::get_from_pfn(40), 8);
+	insert_free_pages(page::get_from_pfn(40), 8);
 	dump();
 
 	dprintf("*** SELF TEST COMPLETE - SYSTEM TERMINATED ***\n");

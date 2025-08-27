@@ -10,54 +10,24 @@
 
 using namespace stacsos::kernel::mem;
 
-void page_allocator_linear::insert_pages(page &range_start, u64 page_count)
+struct page_metadata {
+	page *next_free;
+	u64 free_block_size;
+};
+
+static constexpr inline page_metadata *metadata(page *page) { return (page_metadata *)page->base_address_ptr(); }
+
+void page_allocator_linear::insert_free_pages(page &range_start, u64 page_count)
 {
 	page **slot = &free_list_;
 
 	while (*slot) {
-		slot = &(*slot)->next_free_;
+		slot = &(metadata(*slot)->next_free);
 	}
 
 	*slot = &range_start;
-	range_start.free_block_size_ = page_count;
-}
-
-void page_allocator_linear::remove_pages(page &range_start_r, u64 page_count)
-{
-	page *free_block = free_list_;
-
-	while (free_block) {
-		u64 free_block_start = free_block->pfn();
-		u64 free_block_end = free_block_start + free_block->free_block_size_;
-		u64 range_start = range_start_r.pfn();
-		u64 range_end = range_start + page_count;
-
-		// dprintf("considering %lx -- %lx for %lx -- %lx\n", free_block_start, free_block_end, range_start, range_end);
-
-		if (range_start_r.pfn() >= free_block_start && range_start_r.pfn() < free_block_end) {
-			// dprintf("  range found\n");
-
-			u64 offset = range_start - free_block_start;
-			// dprintf("  offset=%lx\n", offset);
-
-			free_block->free_block_size_ = offset;
-
-			u64 remainder_pages = range_end > free_block_end ? 0 : free_block_end - range_end;
-			// dprintf("  remainder=%lx\n", remainder_pages);
-
-			if (remainder_pages) {
-				page *tmp_next_free = free_block->next_free_;
-
-				free_block->next_free_ = &page::get_from_pfn(range_end);
-				free_block->next_free_->free_block_size_ = remainder_pages;
-				free_block->next_free_->next_free_ = tmp_next_free;
-			}
-
-			break;
-		}
-
-		free_block = free_block->next_free_;
-	}
+	metadata(&range_start)->next_free = nullptr;
+	metadata(&range_start)->free_block_size = page_count;
 }
 
 page *page_allocator_linear::allocate_pages(int order, page_allocation_flags flags)
@@ -70,14 +40,17 @@ page *page_allocator_linear::allocate_pages(int order, page_allocation_flags fla
 	page *free_block = free_list_;
 
 	while (free_block) {
-		if (free_block->free_block_size_ >= page_count) {
-			free_block->free_block_size_ -= page_count;
+		// TODO: Little hack here -- we subtract one so that we don't have to remove the free
+		// block from the list when it's fully used up, since metadata is stored at the start
+		// of the free block.
+		if ((metadata(free_block)->free_block_size - 1) >= page_count) {
+			metadata(free_block)->free_block_size -= page_count;
 
-			u64 start_pfn = free_block->pfn() + free_block->free_block_size_;
+			u64 start_pfn = free_block->pfn() + metadata(free_block)->free_block_size;
 			return &page::get_from_pfn(start_pfn);
 		}
 
-		free_block = free_block->next_free_;
+		free_block = metadata(free_block)->next_free;
 	}
 
 	return nullptr;
@@ -101,9 +74,9 @@ void page_allocator_linear::dump() const
 
 	while (free_block) {
 		u64 free_block_start = free_block->pfn();
-		u64 free_block_end = free_block_start + free_block->free_block_size_;
+		u64 free_block_end = free_block_start + metadata(free_block)->free_block_size;
 		dprintf("  block start=0x%lx, end=0x%lx, size=0x%x\n", free_block_start, free_block_end, free_block_end - free_block_start);
 
-		free_block = free_block->next_free_;
+		free_block = metadata(free_block)->next_free;
 	}
 }

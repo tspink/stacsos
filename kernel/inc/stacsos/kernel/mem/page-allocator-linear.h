@@ -19,8 +19,7 @@ public:
 	{
 	}
 
-	virtual void insert_pages(page &range_start, u64 page_count) override;
-	virtual void remove_pages(page &range_start, u64 page_count) override;
+	virtual void insert_free_pages(page &range_start, u64 page_count) override;
 
 	virtual page *allocate_pages(int order, page_allocation_flags flags = page_allocation_flags::none) override;
 	virtual void free_pages(page &base, int order) override;
