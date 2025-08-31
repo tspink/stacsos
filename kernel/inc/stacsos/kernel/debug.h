@@ -15,7 +15,7 @@ namespace arch {
 extern void dprintf_init();
 extern void dprintf_set_console(arch::console_interface *iface);
 extern void dprintf(const char *msg, ...);
-extern void dprint_data(const u8 *data, size_t length);
+extern void dprint_data(const void *data, size_t length);
 
 class debug_helper {
 	DEFINE_SINGLETON(debug_helper);

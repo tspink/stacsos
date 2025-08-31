@@ -42,13 +42,13 @@ void stacsos::kernel::dprintf(const char *fmt, ...)
 
 void stacsos::kernel::dprintf_set_console(console_interface *iface) { console = iface; }
 
-void stacsos::kernel::dprint_data(const u8 *data, size_t length)
+void stacsos::kernel::dprint_data(const void *data, size_t length)
 {
 	for (size_t i = 0; i < length; i++) {
 		if (((i % 16) == 0) && i > 0) {
 			dprintf("\n");
 		}
-		dprintf("%02x ", data[i]);
+		dprintf("%02x ", ((const u8 *)data)[i]);
 	}
 	dprintf("\n");
 }
