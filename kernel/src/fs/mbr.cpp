@@ -30,5 +30,5 @@ void mbr::scan()
 		}
 	}
 
-	delete buffer;
+	delete[] buffer;
 }

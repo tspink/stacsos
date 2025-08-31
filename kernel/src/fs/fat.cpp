@@ -232,8 +232,6 @@ void fat_node::load()
 			u64 sector = ((cluster - 2) * fatfs.sectors_per_cluster) + fatfs.first_data_sector;
 			u64 size = *(u32 *)&dentry[28];
 
-			dprintf("fat: dentry: name='%s', cluster=%lu, sector=%lu, size=%lu\n", filename.c_str(), cluster, sector, size);
-
 			children_.append(new fat_node(fs(), this, (dentry[11] & 0x10) ? fs_node_kind::directory : fs_node_kind::file, filename, sector, cluster, size));
 		}
 

@@ -41,7 +41,7 @@ shared_ptr<process> process_manager::create_process(const char *path, const char
 		return nullptr;
 	}
 
-	dprintf("pm: found binary\n");
+	dprintf("pm: found binary '%s'\n", path);
 
 	auto file = binary->open();
 	if (!file) {
