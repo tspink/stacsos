@@ -28,8 +28,7 @@ public:
 
 	virtual u64 nr_blocks() const override { return nr_blocks_; }
 
-	virtual void read_blocks_sync(void *buffer, u64 start, u64 count) override;
-	virtual void write_blocks_sync(const void *buffer, u64 start, u64 count) override;
+	virtual void submit_io_request(block_io_request &request) override;
 
 private:
 	volatile hba_port *port_;
@@ -38,5 +37,7 @@ private:
 	volatile hba_cmd_header *get_free_cmd_slot(int &slot_index);
 	void identify();
 	void detect_partitions();
+
+	void do_read_block_sync(void *buffer, u64 start, u64 count);
 };
 } // namespace stacsos::kernel::dev::storage

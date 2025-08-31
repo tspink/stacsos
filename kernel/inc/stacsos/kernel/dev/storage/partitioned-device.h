@@ -7,8 +7,8 @@
  */
 #pragma once
 
-#include <stacsos/kernel/dev/storage/block-device.h>
 #include <stacsos/kernel/debug.h>
+#include <stacsos/kernel/dev/storage/block-device.h>
 
 namespace stacsos::kernel::dev::storage {
 class partition;
@@ -50,17 +50,40 @@ public:
 
 	virtual u64 nr_blocks() const override { return nr_blocks_; }
 
-	virtual void read_blocks_sync(void *buffer, u64 start, u64 count) override
+	virtual void submit_io_request(block_io_request &request) override
 	{
-		owner_.read_blocks_sync(buffer, start + block_offset_, count);
-	}
+		block_io_request *underlying_request = new block_io_request();
+		underlying_request->direction = request.direction;
+		underlying_request->block_count = request.block_count;
+		underlying_request->start_block = request.start_block + block_offset_;
+		underlying_request->buffer = request.buffer;
+		underlying_request->callback = partition_request_cb;
 
-	virtual void write_blocks_sync(const void *buffer, u64 start, u64 count) override
-	{
-		owner_.write_blocks_sync(buffer, start + block_offset_, count);
+		callback_state *cb_state = new callback_state();
+		cb_state->original_request = &request;
+
+		underlying_request->cb_state = cb_state;
+
+		owner_.submit_io_request(*underlying_request);
 	}
 
 private:
+	struct callback_state {
+		block_io_request *original_request;
+	};
+
+	static void partition_request_cb(block_io_request *request, void *state)
+	{
+		callback_state *cb_state = (callback_state *)state;
+
+		if (cb_state->original_request->callback) {
+			cb_state->original_request->callback(cb_state->original_request, cb_state->original_request->cb_state);
+		}
+
+		delete cb_state;
+		delete request;
+	}
+
 	block_device &owner_;
 	u64 block_offset_;
 	u64 nr_blocks_;

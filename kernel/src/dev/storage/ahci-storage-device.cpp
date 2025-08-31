@@ -102,8 +102,20 @@ void ahci_storage_device::detect_partitions()
 	m.scan();
 }
 
-void ahci_storage_device::read_blocks_sync(void *buffer, u64 start, u64 count)
+void ahci_storage_device::submit_io_request(block_io_request &request)
 {
+	if (request.direction == block_io_request_direction::read) {
+		do_read_block_sync(request.buffer, request.start_block, request.block_count);
+		request.callback(&request, request.cb_state);
+	} else {
+		panic("UNIMPLEMENTED BLOCK IO WRITE REQUEST");
+	}
+}
+
+void ahci_storage_device::do_read_block_sync(void *buffer, u64 start, u64 count)
+{
+	// dprintf("ahci: read into %p %lu %lu\n", buffer, start, count);
+
 	int slot_index;
 	volatile hba_cmd_header *cmd = get_free_cmd_slot(slot_index);
 	if (cmd == nullptr) {
@@ -185,8 +197,6 @@ void ahci_storage_device::read_blocks_sync(void *buffer, u64 start, u64 count)
 		panic("read error");
 	}
 }
-
-void ahci_storage_device::write_blocks_sync(const void *buffer, u64 start, u64 count) { }
 
 volatile hba_cmd_header *ahci_storage_device::get_free_cmd_slot(int &slot_index)
 {
