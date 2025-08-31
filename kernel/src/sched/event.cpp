@@ -11,9 +11,13 @@
 
 using namespace stacsos::kernel::sched;
 
-void event::wait()
+template <bool AUTO_RESET> void event<AUTO_RESET>::wait()
 {
-	// dprintf("event %p wait\n", this);
+	if (!AUTO_RESET && triggered_) {
+		return;
+	}
+
+	// TODO: Race Condition!
 
 	thread *ct = &thread::current();
 
@@ -23,9 +27,11 @@ void event::wait()
 	asm volatile("int $0xff");
 }
 
-void event::trigger()
+template <bool AUTO_RESET> void event<AUTO_RESET>::trigger()
 {
-	// dprintf("event %p trigger\n", this);
+	if (!AUTO_RESET) {
+		triggered_ = true;
+	}
 
 	for (auto thread : wait_list_) {
 		thread->resume();
@@ -33,3 +39,6 @@ void event::trigger()
 
 	wait_list_.clear();
 }
+
+template class event<true>;
+template class event<false>;

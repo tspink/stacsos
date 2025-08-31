@@ -93,7 +93,7 @@ private:
 
 	u8 read_buffer_[256];
 	u8 read_buffer_head_, read_buffer_tail_;
-	sched::event read_buffer_event_;
+	sched::auto_reset_event read_buffer_event_;
 
 	void render_char(int x, int y, unsigned char ch, u8 attr);
 	void update_cursor();

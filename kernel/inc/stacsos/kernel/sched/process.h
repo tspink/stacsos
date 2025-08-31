@@ -44,12 +44,12 @@ public:
 
 	mem::address_space &addrspace() const { return *vma_; }
 
-	event &state_changed_event() { return state_changed_event_; }
+	auto_reset_event &state_changed_event() { return state_changed_event_; }
 
 private:
 	exec_privilege priv_;
 	process_state state_;
-	event state_changed_event_;
+	auto_reset_event state_changed_event_;
 
 	mem::address_space *vma_;
 	list<shared_ptr<thread>> threads_;
