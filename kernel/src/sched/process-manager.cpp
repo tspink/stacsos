@@ -24,13 +24,18 @@ void process_manager::init() { dprintf("processes: init\n"); }
 
 shared_ptr<process> process_manager::create_kernel_process(continuation_fn cfn)
 {
-	auto kp = new process(exec_privilege::kernel);
-	kp->create_thread((u64)cfn);
+	if (kernel_process_) {
+		panic("Kernel process already created");
+	}
 
-	auto kpp = shared_ptr(kp);
-	active_processes_.append(kpp);
+	auto kernel_process = new process(exec_privilege::kernel);
+	kernel_process->create_thread((u64)cfn);
 
-	return kpp;
+	auto kernel_process_ptr = shared_ptr(kernel_process);
+	active_processes_.append(kernel_process_ptr);
+
+	kernel_process_ = kernel_process_ptr;
+	return kernel_process_ptr;
 }
 
 shared_ptr<process> process_manager::create_process(const char *path, const char *args)

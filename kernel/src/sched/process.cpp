@@ -54,7 +54,12 @@ void process::stop()
 
 void process::on_thread_stopped(thread &thread)
 {
-	dprintf("thread stopped\n");
+	dprintf("proc: thread stopped\n");
+
+	// Don't do anything further for the kernel process.
+	if (priv_ == exec_privilege::kernel) {
+		return;
+	}
 
 	for (auto &t : threads_) {
 		if (t->state() != thread_states::terminated) {
@@ -62,7 +67,7 @@ void process::on_thread_stopped(thread &thread)
 		}
 	}
 
-	dprintf("process terminated\n");
+	dprintf("proc: terminated\n");
 	state_ = process_state::terminated;
 	state_changed_event_.trigger();
 }

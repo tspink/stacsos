@@ -27,7 +27,10 @@ public:
 	shared_ptr<process> create_kernel_process(continuation_fn ep);
 	shared_ptr<process> create_process(const char *path, const char *args);
 
+	shared_ptr<process> kernel_process() const { return kernel_process_; }
+
 private:
+	shared_ptr<process> kernel_process_;
 	list<shared_ptr<process>> active_processes_;
 };
 } // namespace stacsos::kernel::sched
