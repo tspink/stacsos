@@ -33,6 +33,8 @@ template <bool AUTO_RESET> void event<AUTO_RESET>::trigger()
 		triggered_ = true;
 	}
 
+	// TODO: This should only release ONE thread if it's an auto reset event.
+	// Probably need some kind of mutex too.
 	for (auto thread : wait_list_) {
 		thread->resume();
 	}

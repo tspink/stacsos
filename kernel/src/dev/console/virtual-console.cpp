@@ -10,12 +10,15 @@
 #include <stacsos/kernel/dev/console/console-font.h>
 #include <stacsos/kernel/dev/console/virtual-console.h>
 #include <stacsos/kernel/fs/file.h>
+#include <stacsos/kernel/sched/process-manager.h>
+#include <stacsos/kernel/sched/sleeper.h>
 
 using namespace stacsos::kernel::arch::x86;
 using namespace stacsos::kernel::dev;
 using namespace stacsos::kernel::dev::console;
 using namespace stacsos::kernel::dev::input;
 using namespace stacsos::kernel::fs;
+using namespace stacsos::kernel::sched;
 using namespace stacsos;
 
 device_class virtual_console::virtual_console_device_class(device_class::root, "virtcon");
@@ -227,6 +230,14 @@ void virtual_console::write_char(unsigned char ch, u8 attr)
 void virtual_console::activate()
 {
 	active_ = true;
+
+	if (mode_ == virtual_console_mode::gfx) {
+		auto cft = process_manager::get().kernel_process()->create_thread((u64)cursor_flasher_thread_proc, this);
+		cft->start();
+
+		cursor_flasher_ = cft;
+	}
+
 	update_cursor();
 }
 
@@ -246,6 +257,32 @@ void virtual_console::clear()
 		for (int i = 0; i < GFX_MODE_PIXELS; i++) {
 			frame_buffer[i] = 0;
 		}
+	}
+}
+
+void virtual_console::cursor_flasher_thread_proc(void *arg)
+{
+	virtual_console *vc = (virtual_console *)arg;
+	u32 *frame_buffer = (u32 *)vc->internal_buffer_;
+
+	while (1) {
+		unsigned int pixel_offset = (vc->x_ * 8) + (vc->y_ * GFX_MODE_WIDTH * 15);
+
+		for (int cy = 14; cy < 15; cy++) {
+			for (int cx = 0; cx < 8; cx++) {
+				frame_buffer[pixel_offset + cx + (GFX_MODE_WIDTH * cy)] = 0x00ffffff;
+			}
+		}
+
+		sleeper::get().sleep_ms(500);
+
+		for (int cy = 14; cy < 15; cy++) {
+			for (int cx = 0; cx < 8; cx++) {
+				frame_buffer[pixel_offset + cx + (GFX_MODE_WIDTH * cy)] = 0;
+			}
+		}
+
+		sleeper::get().sleep_ms(500);
 	}
 }
 

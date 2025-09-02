@@ -10,6 +10,7 @@
 #include <stacsos/kernel/dev/device.h>
 #include <stacsos/kernel/dev/input/keys.h>
 #include <stacsos/kernel/sched/event.h>
+#include <stacsos/kernel/sched/thread.h>
 #include <stacsos/memops.h>
 
 namespace stacsos::kernel::dev::console {
@@ -74,7 +75,16 @@ public:
 	void on_key_down(input::keys key);
 
 	void activate();
-	void deactivate() { active_ = false; }
+	void deactivate()
+	{
+		if (cursor_flasher_) {
+			cursor_flasher_->stop();
+			auto x = shared_ptr<stacsos::kernel::sched::thread>(nullptr);
+			cursor_flasher_ = x;
+		}
+
+		active_ = false;
+	}
 
 	void write_char(unsigned char ch, u8 attr);
 	u8 read_char();
@@ -94,6 +104,9 @@ private:
 	u8 read_buffer_[256];
 	u8 read_buffer_head_, read_buffer_tail_;
 	sched::auto_reset_event read_buffer_event_;
+
+	static void cursor_flasher_thread_proc(void *arg);
+	shared_ptr<sched::thread> cursor_flasher_;
 
 	void render_char(int x, int y, unsigned char ch, u8 attr);
 	void update_cursor();
