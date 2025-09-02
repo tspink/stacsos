@@ -15,7 +15,7 @@ struct page_metadata {
 	u64 free_block_size;
 };
 
-static constexpr inline page_metadata *metadata(page *page) { return (page_metadata *)page->base_address_ptr(); }
+static inline page_metadata *metadata(page *page) { return (page_metadata *)page->base_address_ptr(); }
 
 void page_allocator_linear::insert_free_pages(page &range_start, u64 page_count)
 {

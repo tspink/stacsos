@@ -136,12 +136,18 @@ void memory_manager::initialise_page_allocator(u64 nr_page_descriptors)
 				dprintf("  considering %016lx -- %016lx\n", free_range_base, free_range_end);
 
 				// Find any exclusions that this candidate free range intersects
+				bool retry = false;
 				for (int i = 0; i < ARRAY_SIZE(exclusions); i++) {
 					if (free_range_base >= exclusions[i].start && free_range_base < (exclusions[i].start + exclusions[i].length)) {
 						dprintf("  range start intersects exclusion %016lx -- %016lx\n", exclusions[i].start, exclusions[i].start + exclusions[i].length);
 						free_range_base = exclusions[i].start + exclusions[i].length;
-						goto retry;
+						retry = true;
+						break;
 					}
+				}
+
+				if (retry) {
+					continue;
 				}
 
 				// At this point, we have a free range base that doesn't intersect with any exclusion.
@@ -163,9 +169,7 @@ void memory_manager::initialise_page_allocator(u64 nr_page_descriptors)
 				pgalloc_->insert_free_pages(page::get_from_base_address(free_range_base), (max_end - free_range_base) >> PAGE_BITS);
 
 				free_range_base = max_end;
-			retry:
 			}
-
 		} else {
 			// Otherwise, mark these pages as reserved.
 			for (u64 pfn = (mb->start >> PAGE_BITS); pfn < ((mb->start + mb->length) >> PAGE_BITS); pfn++) {
