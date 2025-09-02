@@ -16,11 +16,7 @@ using namespace stacsos::kernel::sched;
 
 device_class block_device::block_device_class(device_class::root, "blk");
 
-struct sync_state {
-	manual_reset_event e;
-};
-
-static void request_cb(block_io_request *request, void *state) { ((sync_state *)state)->e.trigger(); }
+void block_device::submit_io_request(block_io_request &request) { submit_real_io_request(request); }
 
 void block_device::read_blocks_sync(void *buffer, u64 start, u64 count) { submit_sync_request(block_io_request_direction::read, buffer, start, count); }
 
@@ -28,6 +24,12 @@ void block_device::write_blocks_sync(const void *buffer, u64 start, u64 count)
 {
 	submit_sync_request(block_io_request_direction::write, (void *)buffer, start, count);
 }
+
+struct sync_state {
+	manual_reset_event e;
+};
+
+static void request_cb(block_io_request *request, void *state) { ((sync_state *)state)->e.trigger(); }
 
 void block_device::submit_sync_request(block_io_request_direction direction, void *buffer, u64 start, u64 count)
 {

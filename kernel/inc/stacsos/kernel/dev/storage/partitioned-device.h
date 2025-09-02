@@ -50,7 +50,8 @@ public:
 
 	virtual u64 nr_blocks() const override { return nr_blocks_; }
 
-	virtual void submit_io_request(block_io_request &request) override
+protected:
+	virtual void submit_real_io_request(block_io_request &request) override
 	{
 		block_io_request *underlying_request = new block_io_request();
 		underlying_request->direction = request.direction;

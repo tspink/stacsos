@@ -37,10 +37,13 @@ public:
 
 	virtual u64 nr_blocks() const = 0;
 
-	virtual void submit_io_request(block_io_request &request) = 0;
+	void submit_io_request(block_io_request &request);
 
 	void read_blocks_sync(void *buffer, u64 start, u64 count);
 	void write_blocks_sync(const void *buffer, u64 start, u64 count);
+
+protected:
+	virtual void submit_real_io_request(block_io_request &request) = 0;
 
 private:
 	void submit_sync_request(block_io_request_direction direction, void *buffer, u64 start, u64 count);

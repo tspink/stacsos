@@ -102,7 +102,7 @@ void ahci_storage_device::detect_partitions()
 	m.scan();
 }
 
-void ahci_storage_device::submit_io_request(block_io_request &request)
+void ahci_storage_device::submit_real_io_request(block_io_request &request)
 {
 	if (request.direction == block_io_request_direction::read) {
 		do_read_block_sync(request.buffer, request.start_block, request.block_count);
