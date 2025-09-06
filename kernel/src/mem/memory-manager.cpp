@@ -195,8 +195,6 @@ void memory_manager::activate_primary_mapping()
 
 	// TODO: Should do this up until the last physical memory block.
 	for (int i = 0; i < 12; i++) {
-		dprintf("XX %p\n", 0xffff'8000'0000'0000 + phys_base);
-
 		root_address_space_->pgtable().map(
 			ptalloc_, 0xffff'8000'0000'0000 + phys_base, phys_base, mapping_flags::present | mapping_flags::writable, mapping_size::m1g);
 		phys_base += GB(1);

@@ -5,6 +5,7 @@
  * Copyright (c) University of St Andrews 2024
  * Tom Spink <tcs6@st-andrews.ac.uk>
  */
+#include <stacsos/kernel/arch/x86/x86-core.h>
 #include <stacsos/kernel/debug.h>
 #include <stacsos/kernel/dev/device-manager.h>
 #include <stacsos/kernel/dev/gfx/qemu-stdvga.h>
@@ -15,6 +16,8 @@ using namespace stacsos::kernel::dev;
 using namespace stacsos::kernel::dev::storage;
 using namespace stacsos::kernel::dev::gfx;
 using namespace stacsos::kernel::dev::pci;
+using namespace stacsos::kernel::arch::x86;
+using namespace stacsos::kernel::arch::x86::irq;
 
 device_class pci_device::pci_device_class(device_class::root, "pci");
 
@@ -83,5 +86,38 @@ void pci_device::configure()
 	default:
 		dprintf("pci: unknown vendor\n");
 		break;
+	}
+}
+
+void pci_device::register_msi(irq_handler_fn handler, void *arg)
+{
+	for (auto cap : capabilities()) {
+		if (cap.vendor == 0x05) {
+			dprintf("pci: found msi capability\n");
+
+			u8 irqnr = x86_core::this_core().irqmgr().allocate_irq(handler, arg);
+
+			u16 msi_ctrl = config_.read_config_value<u16>(cap.offset + 2);
+			if (!msi_ctrl & 0x80) {
+				panic("32-bit MSI address");
+			}
+
+			// Activate MSI target address
+			u64 msi_address = 0xFEE00000;
+			config_.write_config_value<u32>(cap.offset + 4, (u32)msi_address); // low
+			config_.write_config_value<u32>(cap.offset + 8, (u32)(msi_address >> 32)); // high
+
+			// Activate MSI data payload
+			u32 data = 0x4000 | irqnr;
+			config_.write_config_value<u32>(cap.offset + 12, data);
+
+			// Activate MSI
+			msi_ctrl |= 1;
+			config_.write_config_value<u16>(cap.offset + 2, msi_ctrl);
+
+			// config_.command
+
+			break;
+		}
 	}
 }

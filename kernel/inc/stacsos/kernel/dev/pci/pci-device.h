@@ -7,6 +7,7 @@
  */
 #pragma once
 
+#include <stacsos/kernel/arch/x86/irq/irq-manager.h>
 #include <stacsos/kernel/dev/device.h>
 #include <stacsos/kernel/dev/pci/pci-device-config.h>
 
@@ -14,7 +15,7 @@ namespace stacsos::kernel::dev::pci {
 class pci_bus;
 
 struct pci_capability {
-	u8 offset, vendor, length;
+	u8 offset, vendor;
 } __packed;
 
 struct pci_capabilities_iterator {
@@ -56,7 +57,6 @@ private:
 
 		header_.offset = offset_;
 		header_.vendor = config_.read_config_value<u8>(offset_);
-		header_.length = config_.read_config_value<u8>(offset_ + 2);
 	}
 };
 
@@ -93,6 +93,8 @@ public:
 	pci_capabilities_iterable capabilities() { return pci_capabilities_iterable(config_); }
 
 	pci_device_configuration &config() const { return config_; }
+
+	void register_msi(arch::x86::irq::irq_handler_fn handler, void *arg);
 
 private:
 	pci_device_configuration &config_;
