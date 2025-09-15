@@ -175,7 +175,9 @@ void fat_node::load()
 		auto cluster_data = fatfs.read_cluster(this_cluster);
 
 		// Parse dentries from this cluster
-		char long_filename_buffer[256] = { 0 };
+		char long_filename_buffer[256];
+		long_filename_buffer[0] = 0;
+
 		bool has_long_filename = false;
 
 		for (const u8 *dentry = &(cluster_data.get())[0]; dentry < &(cluster_data.get())[512 * fatfs.sectors_per_cluster]; dentry += 32) {
