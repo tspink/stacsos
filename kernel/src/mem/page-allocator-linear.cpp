@@ -7,6 +7,7 @@
  */
 #include <stacsos/kernel/debug.h>
 #include <stacsos/kernel/mem/page-allocator-linear.h>
+#include <stacsos/memops.h>
 
 using namespace stacsos::kernel::mem;
 
@@ -47,6 +48,10 @@ page *page_allocator_linear::allocate_pages(int order, page_allocation_flags fla
 			metadata(free_block)->free_block_size -= page_count;
 
 			u64 start_pfn = free_block->pfn() + metadata(free_block)->free_block_size;
+			if ((flags & page_allocation_flags::zero) == page_allocation_flags::zero) {
+				memops::pzero(page::get_from_pfn(start_pfn).base_address_ptr(), page_count);
+			}
+
 			return &page::get_from_pfn(start_pfn);
 		}
 
