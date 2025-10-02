@@ -71,23 +71,34 @@ void core::run()
 
 void core::schedule()
 {
-	tcb *next = sched_alg_->select_next_task(get_current_tcb());
+	tcb *current = get_current_tcb();
+	u64 now = __builtin_ia32_rdtsc();
+
+	if (current) {
+		// Update the current task's runtime.
+		u64 delta = now - current->start_time;
+		current->run_time += delta;
+	}
+
+	// Select the next task for execution
+	// TODO: Check task quantum expiry
+	tcb *next = sched_alg_->select_next_task(current);
 	if (!next) {
 		next = &idle_thread_;
 	}
 
+	// Update the next task's start time
+	next->start_time = now;
+
+	// Activate the task.
 	set_current_tcb(next);
 }
 
-void core::update_accounting()
+void core::update_clock()
 {
-	// A thread has just been interrupted by the timer
+	// Update the internal clock
+	u64 now = __builtin_ia32_rdtsc();
+	clock_ += now - last_clock_;
 
-	tcb *current = get_current_tcb();
-	if (current) {
-		u64 now = __builtin_ia32_rdtsc();
-		u64 delta = now - current->start_time;
-		current->run_time += delta;
-		current->start_time = now;
-	}
+	last_clock_ = now;
 }

@@ -38,6 +38,8 @@ public:
 		, status_(core_status::offline)
 		, irqs_(*this)
 		, sched_alg_(nullptr)
+		, clock_(0)
+		, last_clock_(0)
 	{
 		idle_thread_.entity = nullptr;
 		idle_thread_.mcontext = nullptr;
@@ -82,7 +84,7 @@ public:
 	irq_manager &irqs() { return irqs_; }
 	const irq_manager &irqs() const { return irqs_; }
 
-	void update_accounting();
+	void update_clock();
 
 private:
 	int id_;
@@ -91,5 +93,8 @@ private:
 
 	tcb idle_thread_;
 	alg::scheduling_algorithm *sched_alg_;
+
+	u64 clock_;
+	u64 last_clock_;
 };
 } // namespace stacsos::kernel::arch
