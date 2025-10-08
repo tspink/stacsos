@@ -88,6 +88,16 @@ void page_allocator::perform_selftest()
 	insert_free_pages(page::get_from_pfn(40), 8);
 	dump();
 
+	dprintf("(15) Allocate too big\n");
+	auto test15page = allocate_pages(8, page_allocation_flags::none);
+	if (!test15page) {
+		dprintf("good!! allocation failed\n");
+	} else {
+		dprintf("bad!! allocated pfn=%lx, base=%lx\n", test11page->pfn(), test11page->base_address());
+	}
+
+	dump();
+
 	dprintf("*** SELF TEST COMPLETE - SYSTEM TERMINATED ***\n");
 	abort();
 }
