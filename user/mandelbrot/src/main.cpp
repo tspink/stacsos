@@ -47,11 +47,15 @@ s64 realMin, realMax;
 s64 imagMin, imagMax;
 s64 deltaReal, deltaImag;
 
-int width = 80; // frame is 80x25
-int height = 25;
+const u32 WIDTH = 80; // frame is 80x25
+const u32 HEIGHT = 25;
+const u32 LAST_PIXEL = WIDTH * HEIGHT;
 
+//#define WORKLIST
+
+#ifdef WORKLIST
 atomic<u32> next_pixel = 0;
-u32 last_pixel;
+#endif
 
 object *fb;
 
@@ -92,13 +96,27 @@ void output(int value, int i, int j)
 	}
 }
 
+#ifndef WORKLIST
+struct thread_data {
+	u32 start_pixel, end_pixel;
+};
+#endif
+
 static void *mandelbrot(void *arg)
 {
-	u32 my_next_pixel = next_pixel++;
+#ifndef WORKLIST
+	thread_data *data = (thread_data *)arg;
+	u32 my_pixel = data->start_pixel;
 
-	while (my_next_pixel <= last_pixel) {
-		int x = my_next_pixel % width;
-		int y = my_next_pixel / width;
+	while (my_pixel < data->end_pixel) {
+#else
+	u32 my_pixel = next_pixel++;
+
+	while (my_pixel < LAST_PIXEL) {
+#endif
+
+		int x = my_pixel % WIDTH;
+		int y = my_pixel / WIDTH;
 
 		s64 real0, imag0, realq, imagq, real, imag;
 		int count;
@@ -120,7 +138,12 @@ static void *mandelbrot(void *arg)
 		}
 
 		output(count, y, x);
-		my_next_pixel = next_pixel++;
+
+#ifdef WORKLIST
+		my_pixel = next_pixel++;
+#else
+		my_pixel++;
+#endif
 	}
 
 	return nullptr;
@@ -135,26 +158,39 @@ int main(const char *cmdline)
 		return 1;
 	}
 
-	//    printf("\033\x09How many threads would you like to use?\n");
-	//    int numThreads = getch();
-	int numThreads = 8;
-	thread *threads[numThreads];
+	const int NUM_THREADS = 8;
+
+	thread *threads[NUM_THREADS];
+
+#ifndef WORKLIST
+	thread_data thread_data[NUM_THREADS];
+#endif
 
 	realMin = -2 * NORM_FACT;
 	realMax = 1 * NORM_FACT;
 	imagMin = -1 * NORM_FACT;
 	imagMax = 1 * NORM_FACT;
 
-	deltaReal = (realMax - realMin) / (width - 1);
-	deltaImag = (imagMax - imagMin) / (height - 1);
+	deltaReal = (realMax - realMin) / (WIDTH - 1);
+	deltaImag = (imagMax - imagMin) / (HEIGHT - 1);
 
-	last_pixel = width * height;
+	const u32 CHUNK_SIZE = LAST_PIXEL / NUM_THREADS;
 
-	for (int k = 0; k < numThreads; k++) {
-		threads[k] = thread::start(mandelbrot, (void *)(u64)k);
+	for (int thread_index = 0; thread_index < NUM_THREADS; thread_index++) {
+#ifndef WORKLIST
+		thread_data[thread_index].start_pixel = thread_index * CHUNK_SIZE;
+		thread_data[thread_index].end_pixel = thread_data[thread_index].start_pixel + CHUNK_SIZE;
+		if (thread_data[thread_index].end_pixel > LAST_PIXEL) {
+			thread_data[thread_index].end_pixel = LAST_PIXEL;
+		}
+
+		threads[thread_index] = thread::start(mandelbrot, &thread_data[thread_index]);
+#else
+		threads[thread_index] = thread::start(mandelbrot, nullptr);
+#endif
 	}
 
-	for (int k = 0; k < numThreads; k++) {
+	for (int k = 0; k < NUM_THREADS; k++) {
 		threads[k]->join();
 	}
 
