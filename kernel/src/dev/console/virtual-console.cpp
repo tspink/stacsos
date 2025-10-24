@@ -43,11 +43,16 @@ void virtual_console::configure()
 
 void virtual_console::on_key_up(keys key)
 {
-	// TODO: buggy if two shift keys held down
+	// TODO: buggy if two shift/ctrl keys held down
 	switch (key) {
 	case keys::KEY_LSHIFT:
 	case keys::KEY_RSHIFT:
 		current_mod_mask_ = current_mod_mask_ & ~keyboard_modifiers::shift;
+		return;
+
+	case keys::KEY_LCTRL:
+	case keys::KEY_RCTRL:
+		current_mod_mask_ = current_mod_mask_ & ~keyboard_modifiers::ctrl;
 		return;
 
 	default:
@@ -132,6 +137,11 @@ void virtual_console::on_key_down(keys key)
 	case keys::KEY_LSHIFT:
 	case keys::KEY_RSHIFT:
 		current_mod_mask_ = current_mod_mask_ | keyboard_modifiers::shift;
+		return;
+
+	case keys::KEY_LCTRL:
+	case keys::KEY_RCTRL:
+		current_mod_mask_ = current_mod_mask_ | keyboard_modifiers::ctrl;
 		return;
 
 	default:

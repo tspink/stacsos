@@ -16,7 +16,7 @@
 namespace stacsos::kernel::dev::console {
 enum class virtual_console_mode { text, gfx };
 
-enum class keyboard_modifiers { none = 0, shift = 1 };
+enum class keyboard_modifiers { none = 0, shift = 1, ctrl = 2 };
 
 DEFINE_ENUM_FLAG_OPERATIONS(keyboard_modifiers)
 
