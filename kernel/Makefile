@@ -19,7 +19,7 @@ cxxflags += -march=native -no-pie -fno-pic
 cxxflags += -ffreestanding -fno-builtin -fno-omit-frame-pointer -fno-rtti -fno-exceptions
 cxxflags += -fno-delete-null-pointer-checks -fcheck-new -mno-red-zone -fno-stack-protector
 cxxflags += -mno-mmx -mno-sse -mno-sse2 -mno-sse3 -mno-ssse3 -mno-sse4.1 -mno-sse4.2
-cxxflags += -mno-sse4 -mno-avx -mno-aes -mno-sse4a -mno-fma4
+cxxflags += -mno-sse4 -mno-avx -mno-aes -mno-sse4a -mno-fma4 -mno-80387
 
 asflags := -nostdinc -nostdlib -Wall -g -ffreestanding -fno-builtin
 ldflags := -nostdlib -z nodefaultlib -no-pie
