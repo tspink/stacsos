@@ -30,6 +30,7 @@ public:
 
 	void write(const void *buffer, size_t size);
 	void read(void *buffer, size_t size);
+	void clear();
 
 	void attach(console::virtual_console &vc) { attached_vc_ = &vc; }
 

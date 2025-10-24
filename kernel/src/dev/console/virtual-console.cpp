@@ -268,6 +268,8 @@ void virtual_console::clear()
 			frame_buffer[i] = 0;
 		}
 	}
+
+	update_cursor();
 }
 
 void virtual_console::cursor_flasher_thread_proc(void *arg)
@@ -378,6 +380,10 @@ public:
 		switch (cmd) {
 		case 1:
 			return (u64)vc_.mode();
+
+		case 2:
+			vc_.clear();
+			return 0;
 
 		default:
 			return 0;
