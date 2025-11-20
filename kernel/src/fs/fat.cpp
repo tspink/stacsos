@@ -175,10 +175,8 @@ void fat_node::load()
 		auto cluster_data = fatfs.read_cluster(this_cluster);
 
 		// Parse dentries from this cluster
-		char long_filename_buffer[256];
-		long_filename_buffer[0] = 0;
-
 		bool has_long_filename = false;
+		string long_filename;
 
 		for (const u8 *dentry = &(cluster_data.get())[0]; dentry < &(cluster_data.get())[512 * fatfs.sectors_per_cluster]; dentry += 32) {
 			if (dentry[0] == 0) {
@@ -192,21 +190,39 @@ void fat_node::load()
 			if (dentry[11] == 0x0f) {
 				has_long_filename = true;
 
-				// Long filename record
-				u8 filename_offset = 0;
+				string lfn_chunk;
 
+				bool stop = false;
 				for (int i = 1; i < 11; i += 2) {
-					long_filename_buffer[filename_offset++] = dentry[i];
+					if (dentry[i] == 0) {
+						stop = true;
+						break;
+					}
+
+					lfn_chunk += dentry[i];
 				}
 
-				for (int i = 14; i < 26; i += 2) {
-					long_filename_buffer[filename_offset++] = dentry[i];
+				if (!stop) {
+					for (int i = 14; i < 26; i += 2) {
+						if (dentry[i] == 0) {
+							stop = true;
+							break;
+						}
+						lfn_chunk += dentry[i];
+					}
 				}
 
-				for (int i = 28; i < 32; i += 2) {
-					long_filename_buffer[filename_offset++] = dentry[i];
+				if (!stop) {
+					for (int i = 28; i < 32; i += 2) {
+						if (dentry[i] == 0) {
+							stop = true;
+							break;
+						}
+						lfn_chunk += dentry[i];
+					}
 				}
 
+				long_filename = lfn_chunk + long_filename;
 				continue;
 			}
 
@@ -222,10 +238,9 @@ void fat_node::load()
 
 			string filename;
 			if (has_long_filename) {
-				filename = string(long_filename_buffer);
-
+				filename = long_filename;
 				has_long_filename = false;
-				memops::memset(long_filename_buffer, 0, sizeof(long_filename_buffer));
+				long_filename = string();
 			} else {
 				filename = string(short_filename);
 			}
