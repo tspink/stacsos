@@ -122,18 +122,34 @@ start32:
 
     // PDP_MID
     movl $(PDP_MID), %ebx            // Address of PDP_MID into EBX
-    movl $0x000000083, 0x000(%ebx)	// 1G mapping: 0xffff800000000000 ->  0G
-    movl $0x040000083, 0x008(%ebx)	// 1G mapping: 0xffff800040000000 ->  1G
-    movl $0x080000083, 0x010(%ebx)	// 1G mapping: 0xffff800080000000 ->  2G
-    movl $0x0c0000083, 0x018(%ebx)	// 1G mapping: 0xffff8000c0000000 ->  3G
-    movl $0x100000083, 0x020(%ebx)	// 1G mapping: 0xffff800100000000 ->  4G
-    movl $0x140000083, 0x028(%ebx)	// 1G mapping: 0xffff800140000000 ->  5G
-    movl $0x180000083, 0x030(%ebx)	// 1G mapping: 0xffff800180000000 ->  6G
-    movl $0x1c0000083, 0x038(%ebx)	// 1G mapping: 0xffff8001c0000000 ->  7G
-    movl $0x200000083, 0x040(%ebx)	// 1G mapping: 0xffff800200000000 ->  8G
-    movl $0x240000083, 0x048(%ebx)	// 1G mapping: 0xffff800240000000 ->  9G
-    movl $0x280000083, 0x050(%ebx)	// 1G mapping: 0xffff800280000000 -> 10G
-    movl $0x2c0000083, 0x058(%ebx)	// 1G mapping: 0xffff8002c0000000 -> 11G
+    movl $0x00000083, 0x000(%ebx)	// 1G mapping: 0xffff800000000000 ->  0G
+    movl $0x40000083, 0x008(%ebx)	// 1G mapping: 0xffff800040000000 ->  1G
+    movl $0x80000083, 0x010(%ebx)	// 1G mapping: 0xffff800080000000 ->  2G
+    movl $0xc0000083, 0x018(%ebx)	// 1G mapping: 0xffff8000c0000000 ->  3G
+
+    movl $0x00000083, 0x020(%ebx)	// 1G mapping: 0xffff800100000000 ->  4G
+    movl $0x00000001, 0x024(%ebx)	// 1G mapping: 0xffff800100000000 ->  4G
+
+    movl $0x40000083, 0x028(%ebx)	// 1G mapping: 0xffff800140000000 ->  5G
+    movl $0x00000001, 0x02c(%ebx)	// 1G mapping: 0xffff800140000000 ->  5G
+
+    movl $0x80000083, 0x030(%ebx)	// 1G mapping: 0xffff800180000000 ->  6G
+    movl $0x00000001, 0x034(%ebx)	// 1G mapping: 0xffff800180000000 ->  6G
+
+    movl $0xc0000083, 0x038(%ebx)	// 1G mapping: 0xffff8001c0000000 ->  7G
+    movl $0x00000001, 0x03c(%ebx)	// 1G mapping: 0xffff8001c0000000 ->  7G
+
+    movl $0x00000083, 0x040(%ebx)	// 1G mapping: 0xffff800200000000 ->  8G
+    movl $0x00000002, 0x044(%ebx)	// 1G mapping: 0xffff800200000000 ->  8G
+
+    movl $0x40000083, 0x048(%ebx)	// 1G mapping: 0xffff800240000000 ->  9G
+    movl $0x00000002, 0x04c(%ebx)	// 1G mapping: 0xffff800240000000 ->  9G
+
+    movl $0x80000083, 0x050(%ebx)	// 1G mapping: 0xffff800280000000 -> 10G
+    movl $0x00000002, 0x054(%ebx)	// 1G mapping: 0xffff800280000000 -> 10G
+
+    movl $0xc0000083, 0x058(%ebx)	// 1G mapping: 0xffff8002c0000000 -> 11G
+    movl $0x00000002, 0x05c(%ebx)	// 1G mapping: 0xffff8002c0000000 -> 11G
 
     // PDP_HI
     movl $(PDP_HI), %ebx            // Address of PDP_HI into EBX
