@@ -8,20 +8,19 @@
 #pragma once
 
 #include <stacsos/kernel/dev/device.h>
+#include <stacsos/kernel/sched/completion.h>
 
 namespace stacsos::kernel::dev::storage {
 enum class block_io_request_direction { read, write };
 
 struct block_io_request;
-typedef void (*io_request_cb)(block_io_request *, void *);
 
 struct block_io_request {
 	block_io_request_direction direction;
 	u64 start_block;
 	u64 block_count;
 	void *buffer;
-	io_request_cb callback;
-	void *cb_state;
+	sched::completion completion;
 };
 
 class block_device : public device {

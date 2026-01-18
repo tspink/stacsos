@@ -28,6 +28,8 @@ public:
 
 	virtual u64 nr_blocks() const override { return nr_blocks_; }
 
+	void handle_interrupt();
+
 protected:
 	virtual void submit_real_io_request(block_io_request &request) override;
 
@@ -39,6 +41,7 @@ private:
 	void identify();
 	void detect_partitions();
 
-	void do_read_block_sync(void *buffer, u64 start, u64 count);
+	int submit_command(u8 command, u64 lba, u64 count, void *buffer);
+	void submit_command_sync(u8 command, u64 lba, u64 count, void *buffer);
 };
 } // namespace stacsos::kernel::dev::storage

@@ -7,7 +7,7 @@
  */
 #include <stacsos/kernel/debug.h>
 #include <stacsos/kernel/dev/storage/block-device.h>
-#include <stacsos/kernel/sched/event.h>
+#include <stacsos/kernel/sched/completion.h>
 
 using namespace stacsos::kernel;
 using namespace stacsos::kernel::dev;
@@ -25,12 +25,6 @@ void block_device::write_blocks_sync(const void *buffer, u64 start, u64 count)
 	submit_sync_request(block_io_request_direction::write, (void *)buffer, start, count);
 }
 
-struct sync_state {
-	manual_reset_event e;
-};
-
-static void request_cb(block_io_request *request, void *state) { ((sync_state *)state)->e.trigger(); }
-
 void block_device::submit_sync_request(block_io_request_direction direction, void *buffer, u64 start, u64 count)
 {
 	block_io_request io_req;
@@ -39,12 +33,7 @@ void block_device::submit_sync_request(block_io_request_direction direction, voi
 	io_req.block_count = count;
 	io_req.buffer = buffer;
 
-	io_req.callback = request_cb;
-
-	sync_state state;
-	io_req.cb_state = &state;
-
 	submit_io_request(io_req);
 
-	state.e.wait();
+	io_req.completion.wait();
 }

@@ -37,85 +37,36 @@ void ahci_storage_device::configure()
 
 void ahci_storage_device::identify()
 {
-	int slot_index;
-	volatile hba_cmd_header *cmd = get_free_cmd_slot(slot_index);
-	if (cmd == nullptr) {
-		panic("no free cmd slots");
-	}
-
-	cmd->cfl = sizeof(fis_reg_host2device) / sizeof(u32);
-	cmd->w = 0;
-	cmd->prdtl = 1;
-	cmd->p = 1;
-
-	if (cmd->prdtl > 8) {
-		panic("too many prdtls");
-	}
-
-	volatile hba_cmd_table *cmdtbl = (hba_cmd_table *)phys_to_virt((u64)cmd->ctba);
-	memops::bzero((void *)cmdtbl, sizeof(hba_cmd_table) + sizeof(hba_prdt_entry) * cmd->prdtl);
-
 	u8 *buffer = new u8[512];
 
-	// TODO: FIXME: This memory address truncating is unsafe.
-	cmdtbl->prdt_entry[0].dba = (u32)(u64)buffer;
-	cmdtbl->prdt_entry[0].dbc = 512;
-	cmdtbl->prdt_entry[0].i = 1;
-
-	// Prepare command
-	volatile fis_reg_host2device *cmdfis = (fis_reg_host2device *)(&cmdtbl->cfis);
-	memops::bzero((void *)cmdfis, sizeof(fis_reg_host2device));
-
-	cmdfis->type = fis_type::FIS_TYPE_REG_H2D;
-	cmdfis->c = 1;
-	cmdfis->command = ATA_CMD_IDENTIFY;
-
-	// Wait for port
-	while ((port_->task_file_data & (ATA_DEV_BUSY | ATA_DEV_DRQ))) {
-		__relax();
-	}
-
-	port_->command_issue = 1 << slot_index; // Issue command
-
-	while (true) {
-		if (!(port_->command_issue & (1 << slot_index))) {
-			break;
-		}
-
-		if (port_->interrupt_status & HBA_PxIS_TFES) // Task file error
-		{
-			panic("identify error");
-		}
-	}
-
-	if (port_->interrupt_status & HBA_PxIS_TFES) {
-		panic("identify error");
-	}
+	submit_command_sync(ATA_CMD_IDENTIFY, 0, 1, buffer);
 
 	nr_blocks_ = *(u32 *)(buffer + 120);
 	delete[] buffer;
 }
 
-void ahci_storage_device::detect_partitions()
+void ahci_storage_device::submit_command_sync(u8 command, u64 lba, u64 count, void *buffer)
 {
-	mbr m(*this);
-	m.scan();
-}
+	int slot = submit_command(command, lba, count, buffer);
 
-void ahci_storage_device::submit_real_io_request(block_io_request &request)
-{
-	if (request.direction == block_io_request_direction::read) {
-		do_read_block_sync(request.buffer, request.start_block, request.block_count);
-		request.callback(&request, request.cb_state);
-	} else {
-		panic("UNIMPLEMENTED BLOCK IO WRITE REQUEST");
+	while (true) {
+		if (!(port_->command_issue & (1 << slot))) {
+			break;
+		}
+
+		if (port_->interrupt_status & HBA_PxIS_TFES) // Task file error
+		{
+			panic("read error");
+		}
+	}
+
+	if (port_->interrupt_status & HBA_PxIS_TFES) {
+		panic("read error");
 	}
 }
 
-void ahci_storage_device::do_read_block_sync(void *buffer, u64 start, u64 count)
+int ahci_storage_device::submit_command(u8 command, u64 lba, u64 count, void *buffer)
 {
-	// dprintf("ahci: read into %p %lu %lu\n", buffer, start, count);
-
 	int slot_index;
 	volatile hba_cmd_header *cmd = get_free_cmd_slot(slot_index);
 	if (cmd == nullptr) {
@@ -162,14 +113,14 @@ void ahci_storage_device::do_read_block_sync(void *buffer, u64 start, u64 count)
 
 	cmdfis->type = fis_type::FIS_TYPE_REG_H2D;
 	cmdfis->c = 1;
-	cmdfis->command = ATA_CMD_READ_DMA_EX;
+	cmdfis->command = command;
 
-	cmdfis->lba0 = (u8)start;
-	cmdfis->lba1 = (u8)(start >> 8);
-	cmdfis->lba2 = (u8)(start >> 16);
-	cmdfis->lba3 = (u8)(start >> 24);
-	cmdfis->lba4 = (u8)(start >> 32);
-	cmdfis->lba5 = (u8)(start >> 40);
+	cmdfis->lba0 = (u8)lba;
+	cmdfis->lba1 = (u8)(lba >> 8);
+	cmdfis->lba2 = (u8)(lba >> 16);
+	cmdfis->lba3 = (u8)(lba >> 24);
+	cmdfis->lba4 = (u8)(lba >> 32);
+	cmdfis->lba5 = (u8)(lba >> 40);
 	cmdfis->device = 1 << 6;
 
 	cmdfis->countl = (u8)count;
@@ -181,20 +132,30 @@ void ahci_storage_device::do_read_block_sync(void *buffer, u64 start, u64 count)
 	}
 
 	port_->command_issue = 1 << slot_index; // Issue command
+	return slot_index;
+}
 
-	while (true) {
-		if (!(port_->command_issue & (1 << slot_index))) {
-			break;
-		}
+void ahci_storage_device::detect_partitions()
+{
+	mbr m(*this);
+	m.scan();
+}
 
-		if (port_->interrupt_status & HBA_PxIS_TFES) // Task file error
-		{
-			panic("read error");
-		}
-	}
+void ahci_storage_device::handle_interrupt()
+{
+	u32 isr = port_->interrupt_status;
+	port_->interrupt_status = isr;
 
-	if (port_->interrupt_status & HBA_PxIS_TFES) {
-		panic("read error");
+	// TODO: Figure out which command, trigger its completion
+}
+
+void ahci_storage_device::submit_real_io_request(block_io_request &request)
+{
+	if (request.direction == block_io_request_direction::read) {
+		submit_command_sync(ATA_CMD_READ_DMA_EX, request.start_block, request.block_count, request.buffer);
+		request.completion.signal();
+	} else {
+		panic("UNIMPLEMENTED BLOCK IO WRITE REQUEST");
 	}
 }
 

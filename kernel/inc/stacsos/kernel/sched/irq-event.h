@@ -7,30 +7,33 @@
  */
 #pragma once
 
-#include <stacsos/list.h>
 #include <stacsos/kernel/lock.h>
+#include <stacsos/list.h>
 
 namespace stacsos::kernel::sched {
 class thread;
 
-template <bool AUTO_RESET> class event {
+class irq_event {
 public:
-	event()
+	irq_event()
 		: triggered_(false)
 	{
 	}
 
-	void trigger();
-	void wait();
+	void trigger() { triggered_ = true; }
 	void reset() { triggered_ = false; }
 
-private:
-	bool triggered_;
-	spinlock_irq lock_;
-	list<thread *> wait_list_;
-};
+	void wait()
+	{
+		// Spin
+		while (!triggered_) {
+			asm volatile("pause");
+		}
+	}
 
-using auto_reset_event = event<true>;
-using manual_reset_event = event<false>;
+private:
+	volatile bool triggered_;
+	//	list<thread *> wait_list_;
+};
 
 } // namespace stacsos::kernel::sched

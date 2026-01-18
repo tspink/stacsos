@@ -11,6 +11,7 @@
 #include <stacsos/kernel/arch/x86/msr.h>
 #include <stacsos/kernel/config.h>
 #include <stacsos/kernel/debug.h>
+#include <stacsos/kernel/lock.h>
 #include <stacsos/kernel/sched/alg/rr.h>
 #include <stacsos/kernel/sched/alg/scheduling-algorithm.h>
 #include <stacsos/kernel/sched/alg/sfs.h>
@@ -71,8 +72,25 @@ public:
 
 	virtual timer &local_timer() = 0;
 
-	void add_to_runqueue(tcb &tcb) { sched_alg_->add_to_runqueue(tcb); }
-	void remove_from_runqueue(tcb &tcb) { sched_alg_->remove_from_runqueue(tcb); }
+	void add_to_runqueue(tcb &tcb)
+	{
+		u64 flags;
+
+		// TODO: This lock is wrong for MP.
+		rq_lock_.lock(&flags);
+		sched_alg_->add_to_runqueue(tcb);
+		rq_lock_.unlock(flags);
+	}
+
+	void remove_from_runqueue(tcb &tcb)
+	{
+		u64 flags;
+
+		// TODO: This lock is wrong for MP.
+		rq_lock_.lock(&flags);
+		sched_alg_->remove_from_runqueue(tcb);
+		rq_lock_.unlock(flags);
+	}
 
 	void schedule();
 
@@ -96,5 +114,7 @@ private:
 
 	u64 clock_;
 	u64 last_clock_;
+
+	spinlock_irq rq_lock_;
 };
 } // namespace stacsos::kernel::arch
