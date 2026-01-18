@@ -21,10 +21,10 @@ class page {
 	friend class memory_manager;
 
 public:
-	static page &get_from_pfn(u64 pfn) { return get_pagearray()[pfn]; }
+	static page &get_from_pfn(pfn_t pfn) { return get_pagearray()[pfn]; }
 	static page &get_from_base_address(u64 base_addr) { return get_pagearray()[base_addr >> PAGE_BITS]; }
 
-	u64 pfn() const { return ((u64)this - (u64)get_pagearray()) / sizeof(page); }
+	pfn_t pfn() const { return ((u64)this - (u64)get_pagearray()) / sizeof(page); }
 	u64 base_address() const { return pfn() << PAGE_BITS; }
 	void *base_address_ptr() const { return (void *)(base_address() + 0xffff'8000'0000'0000ull); }
 

@@ -166,7 +166,7 @@ void memory_manager::initialise_page_allocator(u64 nr_page_descriptors)
 				dprintf("  free range chunk %016lx -- %016lx\n", free_range_base, max_end);
 
 				// Add these pages to the page allocator
-				pgalloc_->insert_free_pages(page::get_from_base_address(free_range_base), (max_end - free_range_base) >> PAGE_BITS);
+				pgalloc_->insert_free_pages(free_range_base >> PAGE_BITS, (max_end - free_range_base) >> PAGE_BITS);
 
 				free_range_base = max_end;
 			}

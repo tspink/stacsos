@@ -14,12 +14,8 @@ using namespace stacsos::kernel::mem;
 
 template <size_t object_size, int slab_page_order> void *slab_cache<object_size, slab_page_order>::allocate_slab()
 {
-	page *slab_page = (memory_manager::get().pgalloc().allocate_pages(slab_page_order));
-	if (!slab_page) {
-		panic("unable to allocate slab");
-	}
-
-	return slab_page->base_address_ptr();
+	page &slab_page = memory_manager::get().pgalloc().allocate_pages(slab_page_order).to_page();
+	return slab_page.base_address_ptr();
 }
 
 template class slab_cache<16, 0>;

@@ -65,7 +65,7 @@ void thread::task_entry_trampoline(thread *thread)
 void thread::init_tcb()
 {
 	// Allocate an 8k stack.
-	kernel_stack_ = memory_manager::get().pgalloc().allocate_pages(stack_size_order, page_allocation_flags::zero);
+	kernel_stack_ = &memory_manager::get().pgalloc().allocate_pages(stack_size_order, page_allocation_flags::zero).to_page();
 
 	// Set the pointer to the task object in the task control block, and pop the initial
 	// machine context into the stack.

@@ -24,16 +24,16 @@ static u64 l3_pg_off(u64 address) { return address & 0x3fffffff; } // 1G
 
 x86_page_table *x86_page_table::create_empty(page_table_allocator &pta)
 {
-	page *pml4 = pta.allocate();
-	return (x86_page_table *)pml4->base_address_ptr();
+	page &pml4 = pta.allocate();
+	return (x86_page_table *)pml4.base_address_ptr();
 }
 
 x86_page_table *x86_page_table::create_linked_copy(page_table_allocator &pta)
 {
-	page *pml4 = pta.allocate();
+	page &pml4 = pta.allocate();
 
 	const u64 *source_pml4_entries = (u64 *)&pml4_;
-	u64 *new_pml4_entries = (u64 *)pml4->base_address_ptr();
+	u64 *new_pml4_entries = (u64 *)pml4.base_address_ptr();
 
 	for (int pml4_index = 0; pml4_index < 0x200; pml4_index++) {
 		new_pml4_entries[pml4_index] = source_pml4_entries[pml4_index];
@@ -52,8 +52,8 @@ void x86_page_table::map(page_table_allocator &pta, u64 virtual_address, u64 phy
 	if (!l4.present()) {
 		l4.reset();
 
-		page *l3page = pta.allocate();
-		l4.base_address(l3page->base_address());
+		page &l3page = pta.allocate();
+		l4.base_address(l3page.base_address());
 		l4.present(true);
 		l4.rw(rw);
 		l4.us(user);
@@ -78,9 +78,9 @@ void x86_page_table::map(page_table_allocator &pta, u64 virtual_address, u64 phy
 				panic("overlapping mapping");
 			}
 		} else {
-			page *l2page = pta.allocate();
+			page &l2page = pta.allocate();
 			l3.reset();
-			l3.base_address(l2page->base_address());
+			l3.base_address(l2page.base_address());
 			l3.present(true);
 			l3.rw(rw);
 			l3.us(user);
@@ -106,9 +106,9 @@ void x86_page_table::map(page_table_allocator &pta, u64 virtual_address, u64 phy
 				panic("overlapping mapping");
 			}
 		} else {
-			page *l1page = pta.allocate();
+			page &l1page = pta.allocate();
 			l2.reset();
-			l2.base_address(l1page->base_address());
+			l2.base_address(l1page.base_address());
 			l2.present(true);
 			l2.rw(rw);
 			l2.us(user);

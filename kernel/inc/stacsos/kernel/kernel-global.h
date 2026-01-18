@@ -7,7 +7,6 @@
  */
 #pragma once
 
-static inline void *phys_to_virt(unsigned long phys_addr)
-{
-    return (void *)(phys_addr + 0xffff'8000'0000'0000);
-}
+static inline void *phys_to_virt(unsigned long phys_addr) { return (void *)(phys_addr + 0xffff'8000'0000'0000); }
+
+using pfn_t = unsigned long int;

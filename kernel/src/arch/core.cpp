@@ -47,7 +47,7 @@ void core::run()
 	}
 
 	// Initialise the IDLE thread, for doing nothing when there are no tasks to run.
-	void *idle_thread_stack = memory_manager::get().pgalloc().allocate_pages(0, page_allocation_flags::zero)->base_address_ptr();
+	void *idle_thread_stack = memory_manager::get().pgalloc().allocate_pages(0, page_allocation_flags::zero).to_page().base_address_ptr();
 
 	idle_thread_.mcontext = (machine_context *)idle_thread_stack;
 	idle_thread_.mcontext->cs = KERNEL_CODE_SEGMENT_SELECTOR;
