@@ -33,8 +33,8 @@ void page_allocator::perform_selftest()
 	insert_free_pages(0, 1);
 	dump();
 
-	dprintf("  free 0:2\n");
-	free_pages(0, 2);
+	dprintf("  allocate\n");
+	allocate_pages(2, page_allocation_flags::none);
 	dump();
 
 	dprintf("(3) Insert power-of-two block (PFN=0, COUNT=8)\n");
