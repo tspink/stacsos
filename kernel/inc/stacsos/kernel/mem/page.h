@@ -7,6 +7,8 @@
  */
 #pragma once
 
+#include <stacsos/memops.h>
+
 extern "C" void *_DYNAMIC_DATA_START;
 
 namespace stacsos::kernel::mem {
@@ -31,6 +33,11 @@ public:
 	u64 refcount() const { return refcount_; }
 	void acquire() { refcount_++; }
 	bool release() { return !(refcount_--); }
+
+	void clear()
+	{
+		stacsos::memops::pzero(base_address_ptr(), 1);
+	}
 
 private:
 	static page *get_pagearray() { return reinterpret_cast<page *>(&_DYNAMIC_DATA_START); }
