@@ -26,7 +26,9 @@ struct memory_block {
 static memory_block memory_blocks[16];
 static int nr_memory_blocks;
 
-static char page_allocator_structure[0x1000];
+static char page_allocator_structure[0x1000] __aligned(8);
+static_assert(sizeof(page_allocator_buddy) < sizeof(page_allocator_structure));
+static_assert(sizeof(page_allocator_linear) < sizeof(page_allocator_structure));
 
 void memory_manager::init()
 {
@@ -58,6 +60,7 @@ void memory_manager::init()
 	}
 
 	u64 nr_page_descriptors = (last_addr + 1) >> PAGE_BITS;
+
 	initialise_page_descriptors(nr_page_descriptors);
 	initialise_page_allocator(nr_page_descriptors);
 	initialise_object_allocator();
