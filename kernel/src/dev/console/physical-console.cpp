@@ -47,7 +47,7 @@ void physical_console::on_vc_changed(virtual_console *prev_vc, virtual_console *
 		break;
 
 	case virtual_console_mode::gfx:
-		gdev_.set_mode(640, 480, 32);
+		gdev_.set_mode(800, 600, 32);
 		next_vc->internal_buffer_ = (u8 *)gdev_.fb();
 		break;
 	}

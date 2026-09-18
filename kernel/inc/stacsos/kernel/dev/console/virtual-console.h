@@ -30,8 +30,8 @@ public:
 	constexpr static int TEXT_MODE_COLS = 80;
 	constexpr static int TEXT_MODE_CELLS = TEXT_MODE_ROWS * TEXT_MODE_COLS;
 
-	constexpr static int GFX_MODE_WIDTH = 640;
-	constexpr static int GFX_MODE_HEIGHT = 480;
+	constexpr static int GFX_MODE_WIDTH = 800;
+	constexpr static int GFX_MODE_HEIGHT = 600;
 	constexpr static int GFX_MODE_PIXELS = GFX_MODE_WIDTH * GFX_MODE_HEIGHT;
 
 	static device_class virtual_console_device_class;
