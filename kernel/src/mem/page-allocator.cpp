@@ -37,15 +37,15 @@ void page_allocator::perform_selftest()
 	allocate_pages(2, page_allocation_flags::none);
 	dump();
 
-	dprintf("(3) Insert power-of-two block (PFN=0, COUNT=8)\n");
-	insert_free_pages(0, 8);
+	dprintf("(3) Insert power-of-two block (PFN=0x40, COUNT=8)\n");
+	insert_free_pages(64, 8);
 	dump();
 
-	dprintf("(4) Insert odd block (PFN=13, COUNT=3)\n");
+	dprintf("(4) Insert odd block (PFN=0xd, COUNT=3)\n");
 	insert_free_pages(13, 3);
 	dump();
 
-	dprintf("(5) Insert another block (PFN=1300, COUNT=7)\n");
+	dprintf("(5) Insert another block (PFN=0x514, COUNT=7)\n");
 	insert_free_pages(1300, 7);
 	dump();
 
@@ -55,14 +55,14 @@ void page_allocator::perform_selftest()
 		panic("page allocation failed during self-test");
 	}
 
-	dprintf("  allocated pfn=%lx\n", test5page.get_range_start());
+	dprintf("  allocated pfn=0x%lx\n", test5page.get_range_start());
 	dump();
 
-	dprintf("(7) Free page (PFN=%lx, ORDER=0)\n", test5page.get_range_start());
+	dprintf("(7) Free page (PFN=0x%lx, ORDER=0)\n", test5page.get_range_start());
 	free_pages(test5page.get_range_start(), 0);
 	dump();
 
-	dprintf("(8) Insert pages (PFN=20, COUNT=20)\n");
+	dprintf("(8) Insert pages (PFN=0x14, COUNT=20)\n");
 	insert_free_pages(20, 20);
 	dump();
 
@@ -72,15 +72,15 @@ void page_allocator::perform_selftest()
 		panic("page allocation failed during self-test");
 	}
 
-	dprintf("  allocated pfn=%lx\n", test8page.get_range_start());
+	dprintf("  allocated pfn=0x%lx\n", test8page.get_range_start());
 	dump();
 
-	dprintf("(10) Free page (PFN=%lx, ORDER=1)\n", test8page.get_range_start());
+	dprintf("(10) Free page (PFN=0x%lx, ORDER=1)\n", test8page.get_range_start());
 	free_pages(test8page.get_range_start(), 1);
 	dump();
 
-	dprintf("(11) Insert one page (PFN=2, ORDER=0)\n");
-	insert_free_pages(2, 1);
+	dprintf("(11) Insert one page (PFN=0x5b, ORDER=0)\n");
+	insert_free_pages(91, 1);
 	dump();
 
 	dprintf("(12) Allocate page (ORDER=3)\n");
@@ -89,20 +89,20 @@ void page_allocator::perform_selftest()
 		panic("page allocation failed during self-test");
 	}
 
-	dprintf("  allocated pfn=%lx\n", test11page.get_range_start());
+	dprintf("  allocated pfn=0x%lx\n", test11page.get_range_start());
 	dump();
 
 	auto test12page = test11page.get_range_start() + 1;
 
-	dprintf("(13) Free one page in middle of allocation (PFN=%lx, ORDER=0)\n", test12page);
+	dprintf("(13) Free one page in middle of allocation (PFN=0x%lx, ORDER=0)\n", test12page);
 	free_pages(test12page, 0);
 	dump();
 
-	dprintf("(14) Free one page at start of allocation (PFN=%lx, ORDER=0)\n", test11page.get_range_start());
+	dprintf("(14) Free one page at start of allocation (PFN=0x%lx, ORDER=0)\n", test11page.get_range_start());
 	free_pages(test11page.get_range_start(), 0);
 	dump();
 
-	dprintf("(15) Insert page to trigger higher merge (PFN=40, ORDER=3)\n");
+	dprintf("(15) Insert page to trigger higher merge (PFN=0x28, ORDER=3)\n");
 	insert_free_pages(40, 8);
 	dump();
 
@@ -120,7 +120,7 @@ void page_allocator::perform_selftest()
 		}
 
 	} else {
-		dprintf("bad!! allocated pfn=%lx\n", test11page.get_range_start());
+		dprintf("bad!! allocated pfn=0x%lx\n", test11page.get_range_start());
 	}
 
 	dump();
