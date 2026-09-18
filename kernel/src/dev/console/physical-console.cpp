@@ -47,7 +47,7 @@ void physical_console::on_vc_changed(virtual_console *prev_vc, virtual_console *
 		break;
 
 	case virtual_console_mode::gfx:
-		gdev_.set_mode(640, 480, 32);
+		gdev_.set_mode(800, 600, 32);
 		next_vc->internal_buffer_ = (u8 *)gdev_.fb();
 		break;
 	}
@@ -92,6 +92,11 @@ void physical_console::on_key_down(keys key)
 		alt_pressed_ = true;
 		break;
 
+	case keys::KEY_LCTRL:
+	case keys::KEY_RCTRL:
+		ctrl_pressed_ = true;
+		break;
+
 	default:
 		break;
 	}
@@ -106,12 +111,19 @@ void physical_console::on_key_up(keys key)
 	switch (key) {
 	case keys::KEY_LALT:
 	case keys::KEY_RALT:
-		alt_pressed_ = false; // Fallthrough
+		alt_pressed_ = false;
+		break;
+
+	case keys::KEY_LCTRL:
+	case keys::KEY_RCTRL:
+		ctrl_pressed_ = false;
+		break;
 
 	default:
-		if (current_vc_) {
-			current_vc_->on_key_up(key);
-		}
 		break;
+	}
+
+	if (current_vc_) {
+		current_vc_->on_key_up(key);
 	}
 }

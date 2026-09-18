@@ -22,6 +22,8 @@ void console::init()
 	}
 }
 
+void console::clear() { console_object_->ioctl(2, nullptr, 0); }
+
 void console::write(const char *msg) { console_object_->write(msg, memops::strlen(msg)); }
 
 void console::writef(const char *msg, ...)

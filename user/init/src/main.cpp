@@ -20,9 +20,17 @@ static void logo()
 
 	int console_mode = (int)fb->ioctl(1, nullptr, 0);
 	if (console_mode == 0) {
-		console::get().write("\e\xb0                                                                                ");
-		console::get().write("\e\xb0                             Welcome to StACSOS!                                ");
-		console::get().write("\e\xb0                                                                                ");
+		console::get().write("\e\xb0\xc9");
+		for (int i = 0; i < 78; i++) {
+			console::get().write("\xcd");
+		}
+		console::get().write("\xbb");
+		console::get().write("\e\xb0\xba                            Welcome to StACSOS!                               \xba");
+		console::get().write("\e\xb0\xc8");
+		for (int i = 0; i < 78; i++) {
+			console::get().write("\xcd");
+		}
+		console::get().write("\xbc");
 	} else {
 		console::get().write("\n\n\n\n");
 
@@ -84,7 +92,7 @@ int main(const char *cmdline)
 	logo();
 
 	console::get().write("\e\x07\nSwitch virtual consoles by pressing Alt+F{1,2}\n\n");
-	console::get().write("\e\x0cStarting the shell...\e\x07\n\n");
+	console::get().write("\e\x04Starting the shell...\e\x07\n\n");
 
 	while (true) {
 		auto shell_proc = process::create("/usr/shell", "");

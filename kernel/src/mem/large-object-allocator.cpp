@@ -50,16 +50,12 @@ void *large_object_allocator::allocate(size_t size)
 	for (int i = 0; i < 32; i++) {
 		// Only allocate when the bit is set
 		if (nr_pages & (1 << i)) {
-			page *pg = pga.allocate_pages(i); // Allocate a block of pages
-
-			if (!pg) {
-				panic("unable to allocate pages for object");
-			}
+			page &pg = pga.allocate_pages(i).to_page(); // Allocate a block of pages
 
 			// For each page in the block...
 			for (int j = 0; j < (1 << i); j++) {
 				// Map the pages in this block into the virtual address space.
-				v.map(pta, target + (PAGE_SIZE * pgi), pg->base_address() + (PAGE_SIZE * j), mapping_flags::writable);
+				v.map(pta, target + (PAGE_SIZE * pgi), pg.base_address() + (PAGE_SIZE * j), mapping_flags::writable);
 
 				// Increase the current page counter.
 				pgi++;

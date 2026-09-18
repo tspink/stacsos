@@ -36,7 +36,8 @@ run: all
 		-cpu host \
 		-kernel $(out-dir)/stacsos \
 		-append "$(kernel-args)" \
-		-drive format=raw,file=fat:rw:$(out-dir)/rootfs
+		-drive format=raw,file=fat:rw:$(out-dir)/rootfs \
+		$(qemu-args)
 
 debug: all
 	$(qemu) \

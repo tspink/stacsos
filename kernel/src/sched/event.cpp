@@ -13,22 +13,29 @@ using namespace stacsos::kernel::sched;
 
 template <bool AUTO_RESET> void event<AUTO_RESET>::wait()
 {
+	u64 flags;
+
+	lock_.lock(&flags);
 	if (!AUTO_RESET && triggered_) {
+		lock_.unlock(flags);
 		return;
 	}
-
-	// TODO: Race Condition!
 
 	thread *ct = &thread::current();
 
 	wait_list_.append(ct);
 	ct->suspend();
 
+	lock_.unlock(flags);
+
 	asm volatile("int $0xff");
 }
 
 template <bool AUTO_RESET> void event<AUTO_RESET>::trigger()
 {
+	u64 flags;
+	lock_.lock(&flags);
+
 	if (!AUTO_RESET) {
 		triggered_ = true;
 	}
@@ -40,6 +47,8 @@ template <bool AUTO_RESET> void event<AUTO_RESET>::trigger()
 	}
 
 	wait_list_.clear();
+
+	lock_.unlock(flags);
 }
 
 template class event<true>;

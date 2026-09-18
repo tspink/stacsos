@@ -1,0 +1,79 @@
+#include <stacsos/kernel/arch/x86/msr.h>
+
+using namespace stacsos::kernel::arch::x86;
+
+wrapped_msr<msr_indicies::EFER> msrs::efer;
+wrapped_msr<msr_indicies::IA32_APIC_BASE> msrs::ia32_apic_base;
+
+wrapped_msr<msr_indicies::FS_BASE> msrs::fsbase;
+wrapped_msr<msr_indicies::GS_BASE> msrs::gsbase;
+wrapped_msr<msr_indicies::KERNEL_GS_BASE> msrs::kernel_gsbase;
+wrapped_msr<msr_indicies::IA32_TSC_AUX> msrs::ia32_tsc_aux;
+
+wrapped_msr<msr_indicies::STAR> msrs::ia32_star;
+wrapped_msr<msr_indicies::LSTAR> msrs::ia32_lstar;
+wrapped_msr<msr_indicies::SFMASK> msrs::ia32_fmask;
+
+wrapped_msr<msr_indicies::IA32_VMX_BASIC> msrs::ia32_vmx_basic;
+wrapped_msr<msr_indicies::IA32_VMX_PINBASED_CTLS> msrs::ia32_vmx_pinbased_ctls;
+wrapped_msr<msr_indicies::IA32_VMX_PROCBASED_CTLS> msrs::ia32_vmx_procbased_ctls;
+wrapped_msr<msr_indicies::IA32_VMX_EXIT_CTLS> msrs::ia32_vmx_exit_ctls;
+wrapped_msr<msr_indicies::IA32_VMX_ENTRY_CTLS> msrs::ia32_vmx_entry_ctls;
+wrapped_msr<msr_indicies::IA32_VMX_MISC> msrs::ia32_vmx_misc;
+wrapped_msr<msr_indicies::IA32_VMX_CR0_FIXED0> msrs::ia32_vmx_cr0_fixed0;
+wrapped_msr<msr_indicies::IA32_VMX_CR0_FIXED1> msrs::ia32_vmx_cr0_fixed1;
+wrapped_msr<msr_indicies::IA32_VMX_CR4_FIXED0> msrs::ia32_vmx_cr4_fixed0;
+wrapped_msr<msr_indicies::IA32_VMX_CR4_FIXED1> msrs::ia32_vmx_cr4_fixed1;
+wrapped_msr<msr_indicies::IA32_VMX_VMCS_ENUM> msrs::ia32_vmx_vmcs_enum;
+wrapped_msr<msr_indicies::IA32_VMX_PROCBASED_CTLS2> msrs::ia32_vmx_procbased_ctls2;
+wrapped_msr<msr_indicies::IA32_VMX_EPT_VPID_CAP> msrs::ia32_vmx_ept_vpid_cap;
+wrapped_msr<msr_indicies::IA32_VMX_TRUE_PINBASED_CTLS> msrs::ia32_vmx_true_pinbased_ctls;
+wrapped_msr<msr_indicies::IA32_VMX_TRUE_PROCBASED_CTLS> msrs::ia32_vmx_true_procbased_ctls;
+wrapped_msr<msr_indicies::IA32_VMX_TRUE_EXIT_CTLS> msrs::ia32_vmx_true_exit_ctls;
+wrapped_msr<msr_indicies::IA32_VMX_TRUE_ENTRY_CTLS> msrs::ia32_vmx_true_entry_ctls;
+wrapped_msr<msr_indicies::IA32_VMX_VMFUNC> msrs::ia32_vmx_vmfunc;
+
+wrapped_msr<msr_indicies::X2APIC_LAPIC_ID> msrs::x2apic_lapic_id;
+wrapped_msr<msr_indicies::X2APIC_LAPIC_VER> msrs::x2apic_lapic_ver;
+wrapped_msr<msr_indicies::X2APIC_TPR> msrs::x2apic_tpr;
+wrapped_msr<msr_indicies::X2APIC_PPR> msrs::x2apic_ppr;
+wrapped_msr<msr_indicies::X2APIC_EOI> msrs::x2apic_eoi;
+wrapped_msr<msr_indicies::X2APIC_LDR> msrs::x2apic_ldr;
+wrapped_msr<msr_indicies::X2APIC_SVR> msrs::x2apic_svr;
+wrapped_msr<msr_indicies::X2APIC_ISR0> msrs::x2apic_isr0;
+wrapped_msr<msr_indicies::X2APIC_ISR1> msrs::x2apic_isr1;
+wrapped_msr<msr_indicies::X2APIC_ISR2> msrs::x2apic_isr2;
+wrapped_msr<msr_indicies::X2APIC_ISR3> msrs::x2apic_isr3;
+wrapped_msr<msr_indicies::X2APIC_ISR4> msrs::x2apic_isr4;
+wrapped_msr<msr_indicies::X2APIC_ISR5> msrs::x2apic_isr5;
+wrapped_msr<msr_indicies::X2APIC_ISR6> msrs::x2apic_isr6;
+wrapped_msr<msr_indicies::X2APIC_ISR7> msrs::x2apic_isr7;
+wrapped_msr<msr_indicies::X2APIC_TMR0> msrs::x2apic_tmr0;
+wrapped_msr<msr_indicies::X2APIC_TMR1> msrs::x2apic_tmr1;
+wrapped_msr<msr_indicies::X2APIC_TMR2> msrs::x2apic_tmr2;
+wrapped_msr<msr_indicies::X2APIC_TMR3> msrs::x2apic_tmr3;
+wrapped_msr<msr_indicies::X2APIC_TMR4> msrs::x2apic_tmr4;
+wrapped_msr<msr_indicies::X2APIC_TMR5> msrs::x2apic_tmr5;
+wrapped_msr<msr_indicies::X2APIC_TMR6> msrs::x2apic_tmr6;
+wrapped_msr<msr_indicies::X2APIC_TMR7> msrs::x2apic_tmr7;
+wrapped_msr<msr_indicies::X2APIC_IRR0> msrs::x2apic_irr0;
+wrapped_msr<msr_indicies::X2APIC_IRR1> msrs::x2apic_irr1;
+wrapped_msr<msr_indicies::X2APIC_IRR2> msrs::x2apic_irr2;
+wrapped_msr<msr_indicies::X2APIC_IRR3> msrs::x2apic_irr3;
+wrapped_msr<msr_indicies::X2APIC_IRR4> msrs::x2apic_irr4;
+wrapped_msr<msr_indicies::X2APIC_IRR5> msrs::x2apic_irr5;
+wrapped_msr<msr_indicies::X2APIC_IRR6> msrs::x2apic_irr6;
+wrapped_msr<msr_indicies::X2APIC_IRR7> msrs::x2apic_irr7;
+wrapped_msr<msr_indicies::X2APIC_ESR> msrs::x2apic_esr;
+wrapped_msr<msr_indicies::X2APIC_LVT_CMCI> msrs::x2apic_lvt_cmci;
+wrapped_msr<msr_indicies::X2APIC_ICR> msrs::x2apic_icr;
+wrapped_msr<msr_indicies::X2APIC_LVT_TIMER> msrs::x2apic_lvt_timer;
+wrapped_msr<msr_indicies::X2APIC_LVT_THERMAL> msrs::x2apic_lvt_thermal;
+wrapped_msr<msr_indicies::X2APIC_LVT_PERFMON> msrs::x2apic_lvt_perfmon;
+wrapped_msr<msr_indicies::X2APIC_LVT_LINT0> msrs::x2apic_lvt_lint0;
+wrapped_msr<msr_indicies::X2APIC_LVT_LINT1> msrs::x2apic_lvt_lint1;
+wrapped_msr<msr_indicies::X2APIC_LVT_ERROR> msrs::x2apic_lvt_error;
+wrapped_msr<msr_indicies::X2APIC_TIMER_ICR> msrs::x2apic_timer_icr;
+wrapped_msr<msr_indicies::X2APIC_TIMER_CCR> msrs::x2apic_timer_ccr;
+wrapped_msr<msr_indicies::X2APIC_TIMER_DCR> msrs::x2apic_timer_dcr;
+wrapped_msr<msr_indicies::X2APIC_SELF_IPI> msrs::x2apic_self_ipi;

@@ -31,6 +31,7 @@ public:
 		, saved_vc_buffer_size_(0)
 		, gdev_(gdev)
 		, alt_pressed_(false)
+		, ctrl_pressed_(false)
 	{
 	}
 
@@ -67,7 +68,7 @@ private:
 	size_t saved_vc_buffer_size_;
 
 	gfx::graphics &gdev_;
-	bool alt_pressed_;
+	bool alt_pressed_, ctrl_pressed_;
 
 	void on_vc_changed(virtual_console *prev, virtual_console *next);
 };

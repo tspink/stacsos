@@ -23,6 +23,7 @@ public:
 	void write(const char *msg);
 	void writef(const char *msg, ...);
 	char read_char();
+	void clear();
 
 private:
 	console()

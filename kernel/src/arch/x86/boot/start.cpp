@@ -59,7 +59,9 @@ static void initialise_memory(const multiboot_info *mbi)
 	// Loop over each MMAP entry, and tell the memory manager of its existence.
 	multiboot_mmap_entry *mmap = (multiboot_mmap_entry *)mmap_start;
 	while ((uintptr_t)mmap < (uintptr_t)mmap_end) {
-		memory_manager::add_memory_block(mmap->addr, mmap->len, mmap->type == multiboot_mmap_entry_type::MMAP_ENTRY_TYPE_AVAILABLE);
+		if (mmap->addr < 0xfd00000000) {
+			memory_manager::add_memory_block(mmap->addr, mmap->len, mmap->type == multiboot_mmap_entry_type::MMAP_ENTRY_TYPE_AVAILABLE);
+		}
 
 		mmap = (multiboot_mmap_entry *)((uintptr_t)mmap + mmap->size + sizeof(mmap->size));
 	}

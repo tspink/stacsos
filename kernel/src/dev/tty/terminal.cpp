@@ -64,6 +64,8 @@ void terminal::read(void *raw_buffer, size_t size)
 	}
 }
 
+void terminal::clear() { attached_vc_->clear(); }
+
 class terminal_file : public file {
 public:
 	terminal_file(terminal &t)
@@ -82,6 +84,15 @@ public:
 	{
 		t_.write(buffer, length);
 		return length;
+	}
+
+	virtual u64 ioctl(u64 cmd, void *buffer, size_t length)
+	{
+		if (cmd == 2) {
+			t_.clear();
+		}
+
+		return 0;
 	}
 
 private:

@@ -53,38 +53,19 @@ public:
 protected:
 	virtual void submit_real_io_request(block_io_request &request) override
 	{
-		block_io_request *underlying_request = new block_io_request();
-		underlying_request->direction = request.direction;
-		underlying_request->block_count = request.block_count;
-		underlying_request->start_block = request.start_block + block_offset_;
-		underlying_request->buffer = request.buffer;
-		underlying_request->callback = partition_request_cb;
+		block_io_request underlying_request;
+		underlying_request.direction = request.direction;
+		underlying_request.block_count = request.block_count;
+		underlying_request.start_block = request.start_block + block_offset_;
+		underlying_request.buffer = request.buffer;
 
-		callback_state *cb_state = new callback_state();
-		cb_state->original_request = &request;
+		owner_.submit_io_request(underlying_request);
 
-		underlying_request->cb_state = cb_state;
-
-		owner_.submit_io_request(*underlying_request);
+		underlying_request.completion.wait();
+		request.completion.signal();
 	}
 
 private:
-	struct callback_state {
-		block_io_request *original_request;
-	};
-
-	static void partition_request_cb(block_io_request *request, void *state)
-	{
-		callback_state *cb_state = (callback_state *)state;
-
-		if (cb_state->original_request->callback) {
-			cb_state->original_request->callback(cb_state->original_request, cb_state->original_request->cb_state);
-		}
-
-		delete cb_state;
-		delete request;
-	}
-
 	block_device &owner_;
 	u64 block_offset_;
 	u64 nr_blocks_;

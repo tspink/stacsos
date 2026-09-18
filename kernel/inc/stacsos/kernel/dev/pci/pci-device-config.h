@@ -105,7 +105,7 @@ struct pcie_transport : pci_transport {
 
 	u32 read_config_word(u8 offset) const override { return *(u32 *)((uintptr_t)base_ | (offset & ~3u)); }
 
-	void write_config_word(u8 offset, u32 value) override { }
+	void write_config_word(u8 offset, u32 value) override { *(u32 *)((uintptr_t)base_ | (offset & ~3u)) = value; }
 
 private:
 	void *base_;
@@ -206,20 +206,12 @@ public:
 		u32 aligned_offset = offset & ~3u;
 		u32 value_word = read_config_word(aligned_offset);
 
-		dprintf("off=%x, val=%x\n", offset, value);
-
 		u32 mask = (1u << (sizeof(T) * 8)) - 1;
 		mask <<= (8 * ((u32)offset & 3u));
 		mask = ~mask;
 
-		dprintf("mask=%08x\n", mask);
-
-		dprintf("before %x\n", value_word);
 		value_word &= mask;
-		dprintf("pre %x\n", value_word);
 		value_word |= ((u32)value) << (8 * (offset & 3u));
-
-		dprintf("after %x\n", value_word);
 
 		write_config_word(aligned_offset, value_word);
 	}
