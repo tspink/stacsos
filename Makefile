@@ -45,6 +45,8 @@ debug: all
 		-machine q35 \
 		-m 8G \
 		-debugcon stdio \
+		-enable-kvm \
+		-cpu host \
 		-kernel $(out-dir)/stacsos \
 		-append "$(kernel-args)" \
 		-drive format=raw,file=fat:rw:$(out-dir)/rootfs
