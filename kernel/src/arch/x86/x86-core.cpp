@@ -53,7 +53,7 @@ void x86_core::init()
 
 	// Activate the syscall instruction
 	msrs::ia32_lstar = (u64)syscall_entry; // syscall instruction entrypoint
-	msrs::ia32_star = 0x0010'0008'0000'0000; // GDT entries for the syscall/sysret instruction
+	msrs::ia32_star = 0x0013'0008'0000'0000; // GDT entries for the syscall/sysret instruction
 	msrs::ia32_fmask = (u64)(1 << 9); // Disable interrupts on entry to system call
 }
 
