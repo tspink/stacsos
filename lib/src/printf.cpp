@@ -105,6 +105,26 @@ static int append_str(char *buffer, int size, const char *text, int pad, char pa
 	return n;
 }
 
+static int append_size(char *buffer, int size, u64 value)
+{
+	int r = 0;
+	if (value <10240) {
+		r += append_num(buffer, size, value, 10, false, 0, ' ');
+		r += append_str(buffer+r, size-r, " bytes", 0, ' ');
+	} else if (value < 1024 * 1024) {
+		r += append_num(buffer, size, value/1024, 10, false, 0, ' ');
+		r += append_str(buffer+r, size-r, " kB", 0, ' ');
+	} else if (value < 1024 * 1024 * 1024) {
+		r += append_num(buffer, size, value/(1024*1024), 10, false, 0, ' ');
+		r += append_str(buffer+r, size-r, " MB", 0, ' ');
+	} else {
+		r += append_num(buffer, size, value/(1024*1024*1024), 10, false, 0, ' ');
+		r += append_str(buffer+r, size-r, " GB", 0, ' ');
+	}
+
+	return r;
+}
+
 static int append_guid(char *buffer, int size, const unsigned char *guid)
 {
 	int count = 0;
@@ -265,6 +285,12 @@ int stacsos::vsnprintf(char *buffer_base, int size, const char *fmt_base, va_lis
 
 			case 'G':
 				rc = append_guid(buffer, size - 1 - count, va_arg(args, const unsigned char *));
+				count += rc;
+				buffer += rc;
+				break;
+
+			case 'S':
+				rc = append_size(buffer, size - 1 - count, va_arg(args, unsigned long long int));
 				count += rc;
 				buffer += rc;
 				break;
