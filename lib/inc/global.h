@@ -172,12 +172,12 @@ extern __noreturn void panic(const char *fmt, ...);
 extern __noreturn void panic_with_ctx(const void *mctx, const char *fmt, ...);
 
 /* Assertions */
-static inline void __assert(bool cond, const char *str)
+static inline void __assert(bool cond, const char *str, int line, const char* file)
 {
 	if (!cond) {
-		panic("ASSERTION FAILED: %s", str);
+		panic("ASSERTION FAILED at %s:%d: %s", file, line, str);
 		__unreachable();
 	}
 }
 
-#define assert(cond_) __assert((cond_), #cond_)
+#define assert(cond_) __assert((cond_), #cond_, __LINE__, __FILE__)
