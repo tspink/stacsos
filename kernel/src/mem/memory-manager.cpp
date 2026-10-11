@@ -115,7 +115,7 @@ void memory_manager::initialise_page_allocator(u64 nr_page_descriptors)
 			PAGE_ALIGN_UP(sizeof(page) * nr_page_descriptors) } // Dynamic data, containing the page descriptors.
 	};
 
-	dprintf("excluion range:\n");
+	dprintf("exclusion range:\n");
 	for (int i = 0; i < ARRAY_SIZE(exclusions); i++) {
 		dprintf("  %016lx -- %016lx\n", exclusions[i].start, exclusions[i].start + exclusions[i].length);
 	}
